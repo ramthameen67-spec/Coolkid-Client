@@ -24,7 +24,7 @@ main{flex:1;min-height:0;display:flex}
 .msg{max-width:min(780px,92%);padding:10px 14px;border-radius:14px;border:1px solid #ff1a2e55;background:var(--p);overflow-wrap:anywhere}
 .msg.user{align-self:flex-end;border-color:var(--r);box-shadow:0 0 12px #ff1a2e44}
 .msg img{max-width:100%;border-radius:10px;display:block;margin-top:6px;box-shadow:var(--g)}
-.dl{color:var(--r);font-size:13px}
+.dl{color:var(--r);font-size:13px}.dl a{color:var(--r)}
 .bar{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-top:1px solid #ff1a2e44}
 .bar textarea{width:100%;resize:none;height:46px;border-radius:14px}
 .cr{display:flex;align-items:center;gap:6px}.sp{flex:1}
@@ -125,9 +125,10 @@ pre code{background:none;padding:0}
 <h3>About you</h3>
 <label>Your name</label><input id="s-name" placeholder="What should Coolkid call you?">
 <label>About you</label><textarea id="s-about" placeholder="Stuff Coolkid should know: your age, hobbies, what you're into, what you're working on…" style="height:84px"></textarea>
+<label>Memory: Coolkid saves what you tell it and uses it in every chat (one fact per line, edit or delete freely)</label><textarea id="s-mem" placeholder="Nothing saved yet. Say 'remember that I like...' in a chat." style="height:84px"></textarea>
 <label>How Coolkid talks (tap again to unselect)</label><div class="row" id="st" style="flex-wrap:wrap"></div>
 <h3>API keys</h3>
-<small>Add up to 3. Requests rotate between them and skip any key that fails or hits its limit. Free keys: aistudio.google.com/apikey. Pro-class models (3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; on a free key they automatically use 3.8 Flash instead.</small>
+<small>Add up to 3. Requests rotate between them and skip any key that fails or hits its limit. Free keys: aistudio.google.com/apikey. Pro-class models (4 Argon, 3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; on a free key they automatically use a Flash model instead. Web search runs through Google Search on the same key.</small>
 <label>Key 1</label><input id="k0" type="password"><label>Key 2</label><input id="k1" type="password"><label>Key 3</label><input id="k2" type="password">
 <h3>Voice (all male)</h3><small>Tap one to hear it.</small><div class="row" id="vc" style="flex-wrap:wrap"></div>
 <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw" style="width:auto"> Allow occasional swearing in Chatbot</label>
@@ -135,7 +136,7 @@ pre code{background:none;padding:0}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.0. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.2. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="pv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><button onclick="$('#pv').classList.remove('on')">Close</button><iframe id="pvf" sandbox="allow-scripts"></iframe></div></div>
@@ -153,7 +154,7 @@ code:'You are Coolkid Client in Code mode: an elite senior engineer. Reason abou
 game:'You are an elite game developer. Output ONLY one complete self-contained HTML file (inline CSS and JS, no external resources, no markdown). Neon red on black style, keyboard AND touch controls, score, game over and restart. Make it fun and polished.'};
 let user,D,busy,imgMode,ki=0,voice=LS.ck_voice!='0';
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const txt=j=>(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+const txt=j=>{const ps=j.candidates?.[0]?.content?.parts||[],s=ps.map(p=>p.text||'').join('');return s||ps.map(p=>p.codeExecutionResult?.output||'').join('')};
 const H=async s=>{try{return[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){return btoa(s)}};
 const save=()=>{const o={...D};delete o.chat;delete o.code;LS['ck_d_'+user]=JSON.stringify(o,(k,v)=>k=='a'?undefined:v)};
 
@@ -173,12 +174,40 @@ function start(){
  initChats();['chat','code'].forEach(renderPane);
  if(!D.keys.some(Boolean))openSet()}
 
+/* ---------- exact calculator (no guessing, no rounding errors) ---------- */
+const gcd=(a,b)=>{if(a<0n)a=-a;if(b<0n)b=-b;while(b){[a,b]=[b,a%b]}return a};
+const fr=(n,d=1n)=>{if(d==0n)throw Error('Can not divide by zero.');if(d<0n){n=-n;d=-d}const g=gcd(n,d)||1n;return{n:n/g,d:d/g}};
+const mathy=t=>/\d\s*[+×÷*\/^]\s*\d|\d\s+[-x]\s+\d|\b(calculate|compute|solve|equation|percent|factorial|prime|derivative|integral|sqrt|square root|modulo|remainder|average|probability|how many|how much)\b/i.test(t);
+const needsWeb=t=>/\b(today|tonight|latest|news|current(ly)?|right now|this (week|month|year)|recent(ly)?|price of|stock|weather|forecast|score|who won|release date|search|google|look up|trending|2026|2027)\b/i.test(t);
+function fmtR(v){
+ const neg=v.n<0n,n=neg?-v.n:v.n,S=10n**12n,q=(n*S*2n+v.d)/(v.d*2n),exact=(n*S)%v.d==0n;
+ const fp=(q%S).toString().padStart(12,'0').replace(/0+$/,''),val=(neg?'-':'')+(q/S)+(fp?'.'+fp:'');
+ return exact?'**'+val+'**':'**≈ '+val+'**\nExact fraction: '+(neg?'-':'')+n+'/'+v.d}
+function calc(s){
+ s=s.trim().replace(/^(?:(?:what'?s|what is|calculate|calc|compute|solve|evaluate|find|answer)\b[:\s]*)+/i,'').replace(/[=?\s]+$/,'').replace(/(\d),(?=\d{3}\b)/g,'$1').replace(/[×∙·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/(?<=[\d)\s])x(?=[\d(\s])/gi,'*').replace(/\*\*/g,'^');
+ if(!/^[\d\s.+\-*/^()]+$/.test(s)||!/\d/.test(s))return null;
+ const tk=s.match(/\d+\.?\d*|\.\d+|[-+*/^()]/g)||[];let i=0,ops=0;
+ const num=t=>{const[a,b='']=t.split('.');return fr(BigInt((a||'0')+b),10n**BigInt(b.length))};
+ const add=(x,y)=>fr(x.n*y.d+y.n*x.d,x.d*y.d),mul=(x,y)=>fr(x.n*y.n,x.d*y.d);
+ const pw=(x,y)=>{if(y.d!=1n)throw new SyntaxError('exp');const e=y.n<0n?-y.n:y.n;
+  if(e>2000n||(x.n>x.d?x.n:x.d).toString(2).length*Number(e)>2e5)throw Error('That power is too big for me to work out exactly.');
+  const r=fr(x.n**e,x.d**e);return y.n<0n?fr(r.d,r.n):r};
+ const A=()=>{const t=tk[i++];if(t=='('){const v=P();if(tk[i++]!=')')throw new SyntaxError('paren');return v}if(t&&/^[\d.]/.test(t))return num(t);throw new SyntaxError('tok')};
+ const U=()=>{if(tk[i]=='-'){i++;const v=U();return{n:-v.n,d:v.d}}if(tk[i]=='+'){i++;return U()}return W()};
+ const W=()=>{const b=A();if(tk[i]=='^'){i++;ops++;return pw(b,U())}return b};
+ const T=()=>{let v=U();while(tk[i]=='*'||tk[i]=='/'||tk[i]=='('){let o='*';if(tk[i]!='(')o=tk[i++];const r=U();ops++;v=o=='*'?mul(v,r):mul(v,fr(r.d,r.n))}return v};
+ const P=()=>{let v=T();while(tk[i]=='+'||tk[i]=='-'){const o=tk[i++],r=T();ops++;v=add(v,o=='+'?r:{n:-r.n,d:r.d})}return v};
+ try{const v=P();if(i<tk.length||!ops)return null;return fmtR(v)+'\nWorked out exactly with big-number math, so no rounding errors.'}
+ catch(e){return e instanceof SyntaxError?null:'⚠ '+e.message}}
+/*END-CALC*/
+
 /* ---------- Gemini (3 keys, rotating + failover) ---------- */
 const MODELS=[
+['ck-4','Coolkid 4 Argon','gemini-4-argon','Think deeply and carefully. Be exceptionally thorough and accurate, and reason step by step on hard problems.'],
 ['ck-3.8','Coolkid 3.8 Ultra','gemini-3.1-pro-preview','Think deeply and be exceptionally thorough, accurate and insightful.'],
 ['ck-3.7','Coolkid 3.7 Muse','gemini-3.1-pro-preview','Be wildly creative, original and imaginative.'],
 ['ck-3.6','Coolkid 3.6 Coder','gemini-3.1-pro-preview','Prioritize correct, clean, well-structured code and clear technical explanations.'],
-['ck-3.5','Coolkid 3.5 Smart','gemini-3-flash-preview','Be sharp, insightful and well-reasoned.'],
+['ck-3.5','Coolkid 3.5 Smart','gemini-3-flash-preview','Be sharp and well-reasoned, but answer FAST: get straight to the point in a few short sentences, no long preambles.','fast'],
 ['ck-3.4','Coolkid 3.4 Chill','gemini-3-flash-preview','Be relaxed, casual and straight to the point.'],
 ['ck-3.3','Coolkid 3.3 Swift','gemini-2.5-flash','Answer quickly and keep it brief.'],
 ['ck-3.2','Coolkid 3.2 Lite','gemini-2.5-flash-lite',''],
@@ -186,13 +215,15 @@ const MODELS=[
 const MD=k=>MODELS.find(x=>x[0]==k)||MODELS.find(x=>x[0]=='gemini-3-flash-preview');
 const API=k=>MD(k)[2]||MD(k)[0];
 const flav=()=>MD(D.model)[3]||'';
+const fast=()=>MD(D.model)[4]=='fast';
 const EFF={low:'Low',med:'Medium',high:'High'};
+const ef=()=>(D.effs||{})[D.model]||(fast()?'low':D.eff);
 // Pro models (3.1 Pro behind Coolkid 3.6-3.8) have NO free tier, so free AI Studio keys get a 429 "limit: 0".
 // If the chosen model can't be used on a key, fall through to Flash models that free keys can use.
-const FALL=['gemini-3.8-flash','gemini-3.6-flash','gemini-3-flash-preview','gemini-2.5-flash'];
+const FALL=['gemini-3.8-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3-flash-preview','gemini-2.5-flash'];
 const MS=()=>[...new Set([API(D.model),...FALL])];
-const tc=m=>{const e=think?'high':call?'low':D.eff;
- return /gemini-3/.test(m)?{thinkingLevel:{low:'low',med:/pro/.test(m)?'high':'medium',high:'high'}[e]}:{thinkingBudget:{low:1024,med:8192,high:24576}[e]}};
+const tc=m=>{const e=think?'high':call?'low':ef();
+ return /gemini-[34]/.test(m)?{thinkingLevel:{low:'low',med:/pro/.test(m)?'high':'medium',high:'high'}[e]}:{thinkingBudget:{low:1024,med:8192,high:24576}[e]}};
 // model+key pairs that can never work (no free tier / no access / not found). Skipped so we don't waste a call on every
 // message. Lives in memory only: a reload or saving settings (e.g. adding a paid key) clears it.
 const dead=new Set();
@@ -206,13 +237,16 @@ async function gem(ms,body){
   const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id))continue;
   try{
    let cfg=t?{...rb,generationConfig:{thinkingConfig:tc(model)}}:rb,r,j;
-   for(let n=0;n<2;n++){
+   for(let n=0;n<3;n++){
     r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(cfg)});
     j=await r.json().catch(()=>({}));
     // 400 complaining about the thinking setting: retry the same model once without it
-    if(!r.ok&&r.status==400&&t&&cfg!==rb&&/think/i.test(j.error?.message||''))cfg=rb;else break}
+    if(!r.ok&&r.status==400){const e4=j.error?.message||'';
+     if(t&&cfg.generationConfig&&/think/i.test(e4)){const{generationConfig:_g,...x}=cfg;cfg=x}
+     else if(cfg.tools&&/tool|code|search|ground/i.test(e4)){const{tools:_t,...x}=cfg;cfg=_t.length>1?{...x,tools:_t.filter(o=>o.google_search)}:x}
+     else break}else break}
    if(r.ok){
-    if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData)){ki=(ki+i+1)%ks.length;return j}
+    if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){ki=(ki+i+1)%ks.length;return j}
     // 200 but nothing usable (blocked / empty): try the next model instead of showing "(empty reply)"
     last=j.promptFeedback?.blockReason?'Blocked: '+j.promptFeedback.blockReason:'The model sent an empty reply'+(j.candidates?.[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'');continue}
    last=j.error?.message||'HTTP '+r.status;
@@ -229,15 +263,19 @@ function add(m,r,t,img){
  const l=$('#l-'+m),d=document.createElement('div');d.className='msg '+(r=='user'?'user':'ai');
  d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image"><a class="dl" href="${img}" download="coolkid.${img.slice(11,14)=='svg'?'svg':'png'}">Download</a>`:'');
  l.append(d);l.scrollTop=l.scrollHeight;return d}
-function dots(m){const d=add(m,'ai','');d.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';return d}
+const fmtT=ms=>{const n=Math.max(1,Math.round(ms/1000));return n<60?n+'s':Math.floor(n/60)+' min '+(n%60)+'s'};
+function dots(m,web){const d=add(m,'ai',''),pre=web?'Searching the web, thinking for ':'Thinking for ';
+ d.innerHTML='<span class="dots"><i></i><i></i><i></i></span> <span class="tk dl">'+pre+'1s</span>';d.t0=Date.now();
+ d.tm=setInterval(()=>{const k=d.querySelector('.tk');if(k)k.textContent=pre+fmtT(Date.now()-d.t0)},500);
+ const rm=d.remove.bind(d);d.remove=()=>{clearInterval(d.tm);rm()};return d}
 const cp=b=>{navigator.clipboard.writeText(b.closest('.cb').querySelector('code').textContent);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
 const run=b=>{$('#pvf').srcdoc=b.closest('.cb').querySelector('code').textContent;$('#pv').classList.add('on')};
-function openSet(){[0,1,2].forEach(i=>$('#k'+i).value=D?.keys[i]||'');vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';schips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
-function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.keys=[0,1,2].map(i=>$('#k'+i).value.trim());dead.clear();save();$('#set').classList.remove('on')}
+function openSet(){[0,1,2].forEach(i=>$('#k'+i).value=D?.keys[i]||'');vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';$('#s-mem').value=(D.mem||[]).join('\n');schips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
+function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.mem=$('#s-mem').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(-60);D.keys=[0,1,2].map(i=>$('#k'+i).value.trim());dead.clear();save();$('#set').classList.remove('on')}
 
 /* ---------- voice + call ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let call=0,rec,think=0,att=[];
+let call=0,rec,think=0,att=[],webMode=0;
 const st=s=>$('#cs').textContent=s;
 let au,ttsOff;
 // 5 male Gemini voices
@@ -292,19 +330,20 @@ file:'<svg viewBox="0 0 24 24"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7-7l8.5-8.5a
 img:'<svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".6"/><circle cx="17.5" cy="10.5" r=".6"/><circle cx="8.5" cy="7.5" r=".6"/><circle cx="6.5" cy="12.5" r=".6"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.83-.44-1.12-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67H16.4c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z"/></svg>',
 think:'<svg viewBox="0 0 24 24" style="stroke-width:2.3"><path d="M5.6 17.6A8 8 0 1 1 18.4 17.6"/><circle cx="12" cy="13.5" r="1.7"/><path d="M13.3 12.2l2.6-3.2"/></svg>'};
 IC.x='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+IC.web='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>';
 function plus(b,m){
- pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
-  if(v=='img'){imgMode^=1;chips()}else if(v=='think'){think^=1;chips()}else $('#f-'+v).click()})}
+ pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['web','Search the web'+(webMode?' ✓':''),IC.web],['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
+  if(v=='img'){imgMode^=1;chips()}else if(v=='think'){think^=1;chips()}else if(v=='web'){webMode^=1;chips()}else $('#f-'+v).click()})}
 const pickM=v=>{D.model=v;save();lab()};
 function modelMenu(b){
  const L=MODELS.map(x=>[x[0],x[1]]);
  pop(b,[...L.slice(0,5),['more','More models ›']],D.model,v=>v=='more'?pop(b,[['back','‹ Back'],...L.slice(5)],D.model,w=>w=='back'?modelMenu(b):pickM(w),1):pickM(v),1)}
-const effMenu=b=>pop(b,Object.entries(EFF),D.eff,v=>{D.eff=v;save();lab()},1);
+const effMenu=b=>pop(b,Object.entries(EFF).map(([k,v])=>[k,k=='low'&&fast()?'Fast (quickest)':v]),ef(),v=>{(D.effs=D.effs||{})[D.model]=v;save();lab()},1);
 function lab(){
  document.querySelectorAll('.mdl').forEach(x=>x.textContent=MODELS.find(y=>y[0]==D.model)[1].replace('Coolkid ','')+' ▾');
- document.querySelectorAll('.eff').forEach(x=>x.textContent='⚡ '+EFF[D.eff]+' ▾')}
+ document.querySelectorAll('.eff').forEach(x=>x.textContent='⚡ '+(fast()&&ef()=='low'?'Fast':EFF[ef()])+' ▾')}
 function chips(){
- const h=att.map((a,i)=>`<span onclick="att.splice(${i},1);chips()">${IC.file}${esc(a.name)}${IC.x}</span>`).join('')+(think?`<span onclick="think=0;chips()">${IC.think}Think harder${IC.x}</span>`:'')+(imgMode?`<span onclick="imgMode=0;chips()">${IC.img}Image mode${IC.x}</span>`:'');
+ const h=att.map((a,i)=>`<span onclick="att.splice(${i},1);chips()">${IC.file}${esc(a.name)}${IC.x}</span>`).join('')+(think?`<span onclick="think=0;chips()">${IC.think}Think harder${IC.x}</span>`:'')+(imgMode?`<span onclick="imgMode=0;chips()">${IC.img}Image mode${IC.x}</span>`:'')+(webMode?`<span onclick="webMode=0;chips()">${IC.web}Web search${IC.x}</span>`:'');
  document.querySelectorAll('.at').forEach(x=>x.innerHTML=h)}
 ['cam','photo','file'].forEach(k=>$('#f-'+k).onchange=async e=>{
  for(const f of e.target.files){
@@ -324,7 +363,7 @@ const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|
 async function send(m){
  const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;
  const files=att;att=[];chips();inp.value='';busy=1;
- add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const d=dots(m);if(call)st('Thinking…');
+ add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||needsWeb(t))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t),d=dots(m,web);if(call)st('Thinking…');
  let a;
  try{
   if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t))){
@@ -340,12 +379,24 @@ async function send(m){
     const v=txt(await gem(MS(),{contents:[{parts:[{text:'Draw this as one richly detailed, colorful SVG illustration, viewBox="0 0 800 800", with gradients and glow. Output ONLY the raw <svg>...</svg> code, no markdown: '+ep}]}]})).match(/<svg[\s\S]*<\/svg>/i);
     if(!v)throw e;
     d.remove();add(m,'model',"The image model wasn't available on your keys, so I drew this one as SVG.",'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v[0]))}
+  }else if(!files.length&&(a=calc(t))){
+   D[m].push({r:'user',t},{r:'model',t:a});
+   const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}
+   save();d.remove();add(m,'model',a)
   }else{
    D[m].push({r:'user',t:t||'Describe the attached file(s).',a:files});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=(t||files[0]?.name||'Attachment').slice(0,40)}
-   const sys=SYS[m]+me(m)+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
-   const j=await gem(MS(),{t:1,systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
-   a=txt(j)||'(empty reply)';D[m].push({r:'model',t:a});save();d.remove();add(m,'model',a)}
+   const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
+   const j=await gem(MS(),{t:1,...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
+   a=txt(j)||'(empty reply)';
+   const rm=[...a.matchAll(/\[\[\s*remember:\s*([^\]]+?)\s*\]\]/gi)].map(x=>x[1]);
+   if(rm.length){a=a.replace(/\s*\[\[\s*remember:[^\]]*\]\]/gi,'').trim()||'Got it, I will remember that.';remember(rm)}
+   const dt=Date.now()-d.t0;D[m].push({r:'model',t:a});save();d.remove();const el=add(m,'model',a);
+   const gm=j.candidates?.[0]?.groundingMetadata,src=[...new Map((gm?.groundingChunks||[]).map(c=>c.web).filter(w=>w&&/^https?:/.test(w.uri)).map(w=>[w.title||w.uri,w])).values()].slice(0,6);
+   let ft='⏱ Thought for '+fmtT(dt);
+   if(src.length)ft+=' · 🌐 '+src.map(w=>'<a href="'+w.uri.replace(/"/g,'%22')+'" target="_blank" rel="noopener">'+esc(w.title||'source')+'</a>').join(' · ');
+   if(rm.length)ft+='<br>🧠 Saved to memory: '+esc(rm.join('; '));
+   el.insertAdjacentHTML('beforeend','<div class="dl">'+ft+'</div>')}
  }catch(e){d.remove();if(D[m].at(-1)?.r=='user')D[m].pop();add(m,'model','⚠ '+e.message)}
  busy=0;
  if(call){a?speak(a,listen):setTimeout(listen,1500)}else if(a&&m=='chat')speak(a)}
@@ -366,8 +417,11 @@ let tab='chat';
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const goTab=t=>document.querySelector(`nav button[data-t=${t}]`).click();
 const blank=m=>({id:uid(),m,title:'New chat',msgs:[],ts:Date.now()});
+const RULES=' Accuracy rules: never guess at arithmetic. Work every calculation out exactly, step by step (use code execution if you have it), and double-check before answering. Follow multi-step instructions carefully. If you are unsure, say so. Memory: if the user shares a lasting personal fact or preference (name, job, goals, likes, projects, how they like answers) or asks you to remember something, end your reply with a tag like [[remember: short fact]], one tag per fact, and never mention or explain the tag. Do not tag trivial or temporary things.';
+const memTxt=()=>D.mem&&D.mem.length?' Long-term memory (facts you saved about the user from earlier chats; use them naturally, do not recite them): '+D.mem.join('; ')+'.':'';
+function remember(f){D.mem=D.mem||[];f.forEach(x=>{x=x.trim().slice(0,200);if(x&&!D.mem.some(y=>y.toLowerCase()==x.toLowerCase()))D.mem.push(x)});D.mem=D.mem.slice(-60)}
 const STY={chill:'Talk in a relaxed, friendly, casual tone.',hype:'Talk with high energy and hype, lots of enthusiasm.',serious:'Be professional, precise and formal.',short:'Keep every answer as brief as possible.'};
-const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'');
+const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+RULES;
 function schips(){$('#st').innerHTML='';Object.keys(STY).forEach(k=>{const b=document.createElement('button');b.className='rb'+(D.style==k?' sel':'');b.textContent=k[0].toUpperCase()+k.slice(1);
  b.onclick=()=>{D.style=D.style==k?'':k;save();schips()};$('#st').append(b)})}
 function initChats(){
