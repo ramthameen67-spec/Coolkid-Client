@@ -162,9 +162,13 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.6. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.7. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
+<div id="iv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card" style="width:min(520px,100%);align-items:center">
+<img id="ivi" alt="Your image" style="max-width:100%;max-height:60vh;border-radius:10px;background:#000;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto">
+<small id="ivt" style="text-align:center"></small>
+<div class="row" style="width:100%"><button class="pri" onclick="shImgV()">⬆ Save / Share</button><button onclick="$('#iv').classList.remove('on')">Close</button></div></div></div>
 <div id="pv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><button onclick="$('#pv').classList.remove('on')">Close</button><iframe id="pvf" sandbox="allow-scripts"></iframe></div></div>
 
 <div id="cv" class="modal"><div class="wv"><i></i><i></i><i></i><i></i><i></i></div><h2 id="cs" style="color:var(--r);text-shadow:var(--g)">Listening…</h2><button class="rb" style="padding:12px 28px;font-size:16px" onclick="endCall()">End call</button></div>
@@ -311,7 +315,7 @@ function md(s){return esc(s).split('```').map((p,i)=>{
  return p.replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}).join('')}
 function add(m,r,t,img){
  const l=$('#l-'+m),d=document.createElement('div');d.className='msg '+(r=='user'?'user':'ai');
- d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image"><div class="act" style="opacity:1"><button class="sv" onclick="shImg(this)" title="Save image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 12V3M8 7l4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg></button></div>`:'');
+ d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image" onclick="viewImg(this)" style="cursor:pointer"><div class="act" style="opacity:1"><button class="sv" onclick="viewImg(this)" title="Save image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 12V3M8 7l4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg></button></div>`:'');
  if(r=='model'&&t&&!img){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button></div>')}
  l.append(d);l.scrollTop=l.scrollHeight;return d}
 const fmtT=ms=>{const n=Math.max(1,Math.round(ms/1000));return n<60?n+'s':Math.floor(n/60)+' min '+(n%60)+'s'};
@@ -325,10 +329,15 @@ const toPng=async bl=>{let x=await bl.text();x=x.replace(/<svg\b(?![^>]*\swidth=
  return new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=c.height=1600;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,1600,1600);g.drawImage(i,0,0,1600,1600);c.toBlob(p=>{URL.revokeObjectURL(u);p?ok(p):no(Error('png'))},'image/png')};i.onerror=()=>no(Error('img'));i.src=u})};
 async function imgBlob(b){const bl=await(await fetch(b.closest('.msg').querySelector('img').src)).blob();return/svg/.test(bl.type)?toPng(bl):bl}
 const imgExt=bl=>/jpe?g/.test(bl.type)?'jpg':/webp/.test(bl.type)?'webp':'png';
-async function dlImg(b){try{const bl=await imgBlob(b),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='coolkid-'+Date.now()+'.'+imgExt(bl);document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
- catch(e){alert('Could not download. Press and hold (or right-click) the image and choose Save image.')}}
-async function shImg(b){try{const bl=await imgBlob(b),f=new File([bl],'coolkid-'+Date.now()+'.'+imgExt(bl),{type:bl.type});
- if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'Coolkid image'});else dlImg(b)}catch(e){if(e.name!='AbortError')dlImg(b)}}
+let ivBlob=null;
+async function viewImg(b){const t=$('#ivt'),i=$('#ivi');t.textContent='Making your picture…';i.removeAttribute('src');$('#iv').classList.add('on');
+ try{ivBlob=await imgBlob(b);i.src=URL.createObjectURL(ivBlob)}catch(e){ivBlob=null;i.src=b.closest('.msg').querySelector('img').src}
+ t.textContent='Press and hold the picture, then tap Save to Photos (or Download image). The button below also works on most phones.'}
+async function shImgV(){const t=$('#ivt');if(!ivBlob){t.textContent='Press and hold the picture, then tap Save.';return}
+ const f=new File([ivBlob],'coolkid-'+Date.now()+'.'+imgExt(ivBlob),{type:ivBlob.type});
+ try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Coolkid image'});return}}catch(e){if(e.name=='AbortError')return}
+ try{const u=URL.createObjectURL(ivBlob),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();t.textContent='Download started. If nothing happened, press and hold the picture and tap Save.'}
+ catch(e){t.textContent='Press and hold the picture, then tap Save.'}}
 const cpm=b=>{navigator.clipboard.writeText(b.closest('.msg').dataset.raw);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
 const spm=b=>speak(b.closest('.msg').dataset.raw,0,1);
 const cp=b=>{navigator.clipboard.writeText(b.closest('.cb').querySelector('code').textContent);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
