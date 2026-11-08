@@ -108,6 +108,13 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 .act .sv svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--r) 45%,transparent);border-radius:8px}
 @media(prefers-reduced-motion:reduce){body::before,.brand svg,.msg,.sug button{animation:none}}
+#bell{position:relative;flex:none;width:34px;height:34px;margin-left:8px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--r);border-radius:50%;color:var(--r)}
+#bell svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bell i{position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 8px var(--r);display:none}
+#bell.new i{display:block;animation:bellp 1.4s infinite}#bell.new svg{animation:bellr 2.4s infinite}
+@keyframes bellp{50%{transform:scale(1.5)}}@keyframes bellr{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(14deg)}80%{transform:rotate(-12deg)}90%{transform:rotate(8deg)}}
+#upd h3{margin:0 0 4px}#upd h4{margin:14px 0 2px}#upd ul{margin:4px 0 0 18px;padding:0}#upd li{margin:5px 0;font-size:14px}
+.utag{font-size:10px;background:var(--r);color:#fff;border-radius:6px;padding:1px 6px;vertical-align:middle}
 </style></head><body>
 
 <div id="au" class="modal on" style="background:#000"><div class="card">
@@ -119,9 +126,22 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="pri" onclick="auth('in')">Log in</button><button onclick="auth('up')">Sign up</button></div>
 <small>Accounts and keys are saved only in this browser.</small></div></div>
 
+<div id="upd" class="modal" onclick="if(event.target==this)closeUpd()"><div class="card" style="max-height:85vh;overflow:auto;text-align:left">
+<h3>🔔 Updates</h3>
+<h4>v1.9 <span class="utag">NEW</span></h4><ul>
+<li><b>Coolkid 4 Argon is way faster.</b> Replies now stream in word by word instead of showing up all at once, and Argon thinks at its lowest setting.</li>
+<li>If a model is stuck, Coolkid gives up after a few seconds and switches to a faster backup instead of making you wait minutes. A slow model is skipped for 5 minutes.</li>
+<li>New updates bell (this panel).</li></ul>
+<h4>v1.8</h4><ul>
+<li>Real PNG pictures: when Gemini can't draw, a free backup image maker steps in (turn it on or off in Settings).</li>
+<li>More creative answers in Chatbot, and a more creative Argon.</li>
+<li>Upload files up to 20 MB.</li></ul>
+<h4>v1.7</h4><ul><li>Chatbot, Code and Games, accounts, saved chats, memory, voice and calls.</li></ul>
+<div class="row"><button class="pri" onclick="closeUpd()">Close</button></div></div></div>
 <header>
 <button id="mb" onclick="drawer(1)" aria-label="Chats and settings" style="font-size:20px;padding:4px 12px">☰</button>
 <div class="brand"><svg viewBox="0 0 64 64" width="30"><circle cx="32" cy="32" r="29" fill="#000" stroke="currentColor" stroke-width="4"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="currentColor" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="currentColor"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="currentColor" stroke-width="2"/></svg>COOLKID CLIENT</div>
+<button id="bell" onclick="openUpd()" aria-label="Updates"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><i></i></button>
 <nav><button class="on" data-t="chat">Chatbot</button><button data-t="code">Code</button><button data-t="games">Games</button></nav>
 <div class="tools"><button id="vb" title="Voice replies">🔊</button></div>
 </header>
@@ -163,7 +183,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.8. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.9. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="iv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card" style="width:min(520px,100%);align-items:center">
@@ -263,7 +283,7 @@ const tc=m=>{const e=think?'high':call?'low':ef();
  return /gemini-[34]/.test(m)?{thinkingLevel:(minOK&&e=='low'&&!think&&!call&&fast()&&!/pro/.test(m))?'minimal':{low:'low',med:/pro/.test(m)?'high':'medium',high:'high'}[e]}:{thinkingBudget:{low:1024,med:8192,high:24576}[e]}};
 // model+key pairs that can never work (no free tier / no access / not found). Skipped so we don't waste a call on every
 // message. Lives in memory only: a reload or saving settings (e.g. adding a paid key) clears it.
-const dead=new Set();
+const dead=new Set(),slow={};
 const permFail=(s,m)=>s==404||s==403||(s==429&&/limit:\s*0\b/.test(m));
 function toOAI(model,rb){
  const m=[],sys=(rb.systemInstruction?.parts||[]).map(p=>p.text||'').join('');if(sys)m.push({role:'system',content:sys});
@@ -275,15 +295,37 @@ function toOAI(model,rb){
  const req={model,messages:m};
  if(/gpt-oss/.test(model))req.reasoning_effort={low:'low',med:'medium',high:'high'}[think?'high':call?'low':ef()];
  return req}
+// One Gemini call. With onText it streams (words appear as they arrive); to = ms to wait for the FIRST bytes before giving up.
+async function callG(model,key,cfg,onText,to){
+ const H={'Content-Type':'application/json','x-goog-api-key':key},U='https://generativelanguage.googleapis.com/v1beta/models/'+model;
+ if(!onText){const r=await fetch(U+':generateContent',{method:'POST',headers:H,body:JSON.stringify(cfg)});return{r,j:await r.json().catch(()=>({}))}}
+ const ac=new AbortController();let tm=setTimeout(()=>ac.abort(),to||15000);
+ try{
+  const r=await fetch(U+':streamGenerateContent?alt=sse',{method:'POST',headers:H,body:JSON.stringify(cfg),signal:ac.signal});
+  if(!r.ok){clearTimeout(tm);return{r,j:await r.json().catch(()=>({}))}}
+  const rd=r.body.getReader(),dc=new TextDecoder();let buf='',acc='',gm=null,fin=null,pf=null;
+  for(;;){
+   const{done,value}=await rd.read();if(done)break;
+   clearTimeout(tm);tm=setTimeout(()=>ac.abort(),25000);
+   buf+=dc.decode(value,{stream:true}).replace(/\r\n/g,'\n');
+   let i;while((i=buf.indexOf('\n\n'))>=0){const ev=buf.slice(0,i);buf=buf.slice(i+2);
+    const ln=ev.split('\n').find(l=>l.startsWith('data:'));if(!ln)continue;
+    let o;try{o=JSON.parse(ln.slice(5))}catch(e){continue}
+    const c=o.candidates?.[0];if(o.promptFeedback)pf=o.promptFeedback;
+    (c?.content?.parts||[]).forEach(p=>{if(p.text&&!p.thought){acc+=p.text;onText(acc)}});
+    if(c?.groundingMetadata)gm=c.groundingMetadata;if(c?.finishReason)fin=c.finishReason}}
+  clearTimeout(tm);
+  return{r,j:{candidates:[{content:{parts:acc?[{text:acc}]:[]},groundingMetadata:gm,finishReason:fin}],promptFeedback:pf}}
+ }catch(e){clearTimeout(tm);throw e.name=='AbortError'?Error('timeout'):e}}
 async function gem(ms,body){
  const gk=[...new Set([D.gk,...D.keys.filter(k=>/^gsk_/.test(k||''))].filter(Boolean))],gks=D.keys.filter(k=>k&&!/^gsk_/.test(k));
  if(!gks.length&&!gk.length){openSet();throw Error('Add at least one API key in settings ⚙')}
- const{t,...rb}=body,list=[].concat(ms);let last='Request failed';
- if(!list.some(m=>[...gks,...gk].some(k=>!dead.has(m+'|'+k))))dead.clear();
+ const{t,to,onText,...rb}=body,list=[].concat(ms);let last='Request failed';
+ if(!list.some(m=>[...gks,...gk].some(k=>!dead.has(m+'|'+k)&&!((slow[m+'|'+k]||0)>Date.now()))))dead.clear(),Object.keys(slow).forEach(k=>delete slow[k]);
  for(const model of list){const G=isGq(model),ks=G?gk:gks;
  if(!ks.length){last=G?'Add a Bolt API key in settings ⚙ to use Bolt models.':'Add a Gemini API key in settings ⚙ for this.';continue}
  for(let i=0;i<ks.length;i++){
-  const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id))continue;
+  const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id)||(slow[id]||0)>Date.now())continue;
   try{
    if(G){
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(toOAI(model,rb))});
@@ -295,20 +337,19 @@ async function gem(ms,body){
    const bs=rb.generationConfig?rb:{...rb,generationConfig:{temperature:TEMP,topP:0.97}};
    let cfg=t?{...bs,generationConfig:{...bs.generationConfig,thinkingConfig:tc(model)}}:bs,r,j;
    for(let n=0;n<3;n++){
-    r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(cfg)});
-    j=await r.json().catch(()=>({}));
+    ({r,j}=await callG(model,key,cfg,onText,to));
     // 400 complaining about the thinking setting: retry the same model once without it
     if(!r.ok&&r.status==400){const e4=j.error?.message||'';
      if(t&&cfg.generationConfig&&/think/i.test(e4)){if(minOK&&cfg.generationConfig.thinkingConfig?.thinkingLevel=='minimal'){minOK=false;cfg={...cfg,generationConfig:{...cfg.generationConfig,thinkingConfig:tc(model)}}}else{const{thinkingConfig:_k,...gx}=cfg.generationConfig;cfg={...cfg,generationConfig:gx}}}
      else if(cfg.tools&&/tool|code|search|ground/i.test(e4)){const{tools:_t,...x}=cfg;cfg=_t.length>1?{...x,tools:_t.filter(o=>o.google_search)}:x}
      else break}else break}
    if(r.ok){
-    if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){ki=(ki+i+1)%ks.length;return j}
+    if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){ki=(ki+i+1)%ks.length;j.__m=model;return j}
     // 200 but nothing usable (blocked / empty): try the next model instead of showing "(empty reply)"
     last=j.promptFeedback?.blockReason?'Blocked: '+j.promptFeedback.blockReason:'The model sent an empty reply'+(j.candidates?.[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'');continue}
    last=j.error?.message||'HTTP '+r.status;
    if(permFail(r.status,last))dead.add(id)}
-  catch(e){last=e.message}}}
+  catch(e){if(e.message=='timeout'){last='That model took too long to answer';slow[id]=Date.now()+300000}else last=e.message}}}
  throw Error(last)}
 
 /* ---------- UI helpers ---------- */
@@ -487,13 +528,13 @@ async function send(m){
    D[m].push({r:'user',t:t||'Describe the attached file(s).',a:files});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=(t||files[0]?.name||'Attachment').slice(0,40)}
    const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
-   const j=await gem(MS(),{t:1,...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
+   const j=await gem(MS(),{t:1,to:fast()?10000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
    a=txt(j)||'(empty reply)';
    const rm=[...a.matchAll(/\[\[\s*remember:\s*([^\]]+?)\s*\]\]/gi)].map(x=>x[1]);
    if(rm.length){a=a.replace(/\s*\[\[\s*remember:[^\]]*\]\]/gi,'').trim()||'Got it, I will remember that.';remember(rm)}
    const dt=Date.now()-d.t0;D[m].push({r:'model',t:a});save();d.remove();const el=add(m,'model',a);
    const gm=j.candidates?.[0]?.groundingMetadata,src=[...new Map((gm?.groundingChunks||[]).map(c=>c.web).filter(w=>w&&/^https?:/.test(w.uri)).map(w=>[w.title||w.uri,w])).values()].slice(0,6);
-   let ft='⏱ Thought for '+fmtT(dt);
+   let ft='⏱ Thought for '+fmtT(dt);if(j.__m&&j.__m!==API(D.model))ft+=' · ⚡ faster backup model';
    if(src.length)ft+=' · 🌐 '+src.map(w=>'<a href="'+w.uri.replace(/"/g,'%22')+'" target="_blank" rel="noopener">'+esc(w.title||'source')+'</a>').join(' · ');
    if(rm.length)ft+='<br>🧠 Saved to memory: '+esc(rm.join('; '));
    const af=el.querySelector('.act');(af||el).insertAdjacentHTML(af?'beforebegin':'beforeend','<div class="dl">'+ft+'</div>')}
@@ -567,5 +608,9 @@ function delAcc(){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button,.pane').forEach(x=>x.classList.remove('on'));
  b.classList.add('on');tab=b.dataset.t;$('#'+b.dataset.t).classList.add('on')});
+const UPV='1.9';
+function openUpd(){$('#upd').classList.add('on');LS.ck_seen=UPV;$('#bell').classList.remove('new')}
+function closeUpd(){$('#upd').classList.remove('on')}
+if(LS.ck_seen!=UPV)$('#bell').classList.add('new');
 user=LS.ck_user;if(user&&JSON.parse(LS.ck_users||'{}')[user])start();
 </script></body></html>
