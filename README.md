@@ -1,0 +1,2 @@
+# Coolkid-Client
+hacker AI
