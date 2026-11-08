@@ -3,16 +3,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coolkid Client</title>
 <style>
-:root{--r:#ff1a2e;--g:0 0 6px #ff1a2e,0 0 20px #ff1a2e77;--p:#14060a;--t:#ffe9ec}
+:root{--r:#ff1a2e;--g:0 0 6px var(--r),0 0 20px color-mix(in srgb,var(--r) 47%,transparent);--p:color-mix(in srgb,var(--r) 8%,#000);--t:color-mix(in srgb,var(--r) 8%,#fff)}
 *{box-sizing:border-box;margin:0}
-body{background:radial-gradient(circle at 50% -10%,#31060b,#000 62%);color:var(--t);font:15px/1.55 system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body{background:radial-gradient(circle at 50% -10%,color-mix(in srgb,var(--r) 18%,#000),#000 62%);color:var(--t);font:15px/1.55 system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 button,input,textarea{font:inherit;color:var(--t)}
 button{background:#0b0305;border:1px solid var(--r);border-radius:10px;padding:8px 12px;cursor:pointer;transition:box-shadow .15s}
 button:hover{box-shadow:var(--g)}
 button.on,.pri{background:var(--r);color:#000;font-weight:700}
-input,textarea{background:#0b0305;border:1px solid #ff1a2e66;border-radius:10px;padding:10px 12px;outline:none}
+input,textarea{background:#0b0305;border:1px solid color-mix(in srgb,var(--r) 40%,transparent);border-radius:10px;padding:10px 12px;outline:none}
 input:focus,textarea:focus,button:focus-visible{border-color:var(--r);box-shadow:var(--g)}
-header{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--r);box-shadow:0 2px 18px #ff1a2e44;flex-wrap:wrap}
+header{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--r);box-shadow:0 2px 18px color-mix(in srgb,var(--r) 27%,transparent);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.5px;text-shadow:var(--g);color:var(--r)}
 nav{display:flex;gap:6px;margin:0 auto}
 nav button{padding:8px 18px;font-weight:600}
@@ -21,11 +21,11 @@ main{flex:1;min-height:0;display:flex}
 .pane{display:none;flex:1;min-width:0;flex-direction:column}
 .pane.on{display:flex}
 .log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.msg{max-width:min(780px,92%);padding:10px 14px;border-radius:14px;border:1px solid #ff1a2e55;background:var(--p);overflow-wrap:anywhere}
-.msg.user{align-self:flex-end;border-color:var(--r);box-shadow:0 0 12px #ff1a2e44}
+.msg{max-width:min(780px,92%);padding:10px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--r) 33%,transparent);background:var(--p);overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;border-color:var(--r);box-shadow:0 0 12px color-mix(in srgb,var(--r) 27%,transparent)}
 .msg img{max-width:100%;border-radius:10px;display:block;margin-top:6px;box-shadow:var(--g)}
 .dl{color:var(--r);font-size:13px}.dl a{color:var(--r)}
-.bar{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-top:1px solid #ff1a2e44}
+.bar{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-top:1px solid color-mix(in srgb,var(--r) 27%,transparent)}
 .bar textarea{width:100%;resize:none;height:46px;border-radius:14px}
 .cr{display:flex;align-items:center;gap:6px}.sp{flex:1}
 .at{display:flex;gap:6px;flex-wrap:wrap}.at:empty{display:none}
@@ -37,21 +37,21 @@ main{flex:1;min-height:0;display:flex}
 .rc svg{width:22px;height:22px}
 .pop{position:fixed;z-index:20;background:#0a0204;border:1px solid var(--r);box-shadow:var(--g);border-radius:18px;padding:8px;display:flex;flex-direction:column;gap:4px;min-width:200px}
 .pi{display:flex;align-items:center;gap:12px;border:0;background:none;color:#fff;font-weight:600;font-size:16px;padding:6px 10px;border-radius:14px;text-align:left}
-.pic{width:42px;height:42px;border-radius:50%;background:#ff1a2e55;display:grid;place-items:center;font-size:18px}
+.pic{width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--r) 33%,transparent);display:grid;place-items:center;font-size:18px}
 .pic svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.pop:not(.red){background:#3d0610;border:0;box-shadow:0 8px 30px #000b}
-.pop:not(.red) .pi:hover{background:#ff1a2e22;box-shadow:none}
+.pop:not(.red){background:color-mix(in srgb,var(--r) 22%,#000);border:0;box-shadow:0 8px 30px #000b}
+.pop:not(.red) .pi:hover{background:color-mix(in srgb,var(--r) 13%,transparent);box-shadow:none}
 .pop.red .pi{background:var(--r);border-radius:12px;padding:10px 14px}
 .pop{max-height:70vh;overflow:auto}
-.pop.red .pi.sel{background:#fff;color:#c00010}
-#cv{flex-direction:column;gap:24px;background:radial-gradient(circle,#3a0710,#000 70%)}
+.pop.red .pi.sel{background:#fff;color:color-mix(in srgb,var(--r) 75%,#000)}
+#cv{flex-direction:column;gap:24px;background:radial-gradient(circle,color-mix(in srgb,var(--r) 20%,#000),#000 70%)}
 .wv{display:flex;gap:8px;align-items:center;height:120px}
 .wv i{width:12px;height:100%;border-radius:8px;background:var(--r);box-shadow:var(--g);animation:w 1s infinite ease-in-out}
 .wv i:nth-child(2n){animation-delay:.2s}.wv i:nth-child(3n){animation-delay:.4s}
 @keyframes w{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
-code{background:#2a0a10;padding:1px 5px;border-radius:5px;font-size:.92em}
-.cb{margin:8px 0;border:1px solid #ff1a2e77;border-radius:10px;overflow:hidden;background:#000}
-.ch{display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:#1c070c;font-size:12px;color:var(--r)}
+code{background:color-mix(in srgb,var(--r) 15%,#000);padding:1px 5px;border-radius:5px;font-size:.92em}
+.cb{margin:8px 0;border:1px solid color-mix(in srgb,var(--r) 47%,transparent);border-radius:10px;overflow:hidden;background:#000}
+.ch{display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:color-mix(in srgb,var(--r) 12%,#000);font-size:12px;color:var(--r)}
 .ch button{padding:2px 8px;margin-left:6px;font-size:12px}
 pre{padding:10px;overflow:auto;font:13px/1.45 ui-monospace,Consolas,monospace}
 pre code{background:none;padding:0}
@@ -67,10 +67,10 @@ pre code{background:none;padding:0}
 .modal.on{display:flex}
 .card{background:#0a0204;border:1px solid var(--r);box-shadow:var(--g);border-radius:16px;padding:22px;width:min(400px,100%);display:flex;flex-direction:column;gap:10px}
 .card h1,.card h2{color:var(--r);text-shadow:var(--g);text-align:center;font-size:22px}
-.card small,.card label{color:#ff9aa5;font-size:12px}
+.card small,.card label{color:color-mix(in srgb,var(--r) 55%,#fff);font-size:12px}
 .row{display:flex;gap:8px}.row button{flex:1}
 #pv .card{width:min(900px,100%);height:85vh}#pv iframe{flex:1;border:0;background:#000;border-radius:8px}
-.rb.sel{background:#fff;color:#c00010}
+.rb.sel{background:#fff;color:color-mix(in srgb,var(--r) 75%,#000)}
 .modal .card{max-height:92vh;overflow:auto}
 .card h3{color:var(--r);font-size:15px;margin-top:8px}
 .dr{position:fixed;inset:0;z-index:15;display:none;background:#000a}.dr.on{display:block}
@@ -79,14 +79,37 @@ pre code{background:none;padding:0}
 .dh{display:flex;align-items:center;gap:8px;color:var(--r);font-weight:800;font-size:18px;text-shadow:var(--g)}.dh button{margin-left:auto;padding:4px 10px}
 #cl{flex:1;overflow:auto;display:flex;flex-direction:column;gap:4px}
 .ci{display:flex;align-items:center;gap:4px;border:1px solid transparent;border-radius:10px;padding:0 2px 0 10px;cursor:pointer}
-.ci:hover,.ci.on{border-color:var(--r)}.ci.on{background:#ff1a2e22}
+.ci:hover,.ci.on{border-color:var(--r)}.ci.on{background:color-mix(in srgb,var(--r) 13%,transparent)}
 .ci span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:9px 0}
 .ci button{border:0;background:none;padding:6px 8px}
 @media(prefers-reduced-motion:reduce){.dots i{animation-duration:2s}}
+
+/* ---- UI upgrade ---- */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(color-mix(in srgb,var(--r) 9%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--r) 9%,transparent) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 50% 0,#000,transparent 75%);mask-image:radial-gradient(circle at 50% 0,#000,transparent 75%);animation:gm 14s linear infinite}
+@keyframes gm{to{background-position:0 44px,44px 0}}
+header,main{position:relative;z-index:1}
+header{background:#0007;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.brand svg{animation:lp 3s ease-in-out infinite}@keyframes lp{50%{filter:drop-shadow(0 0 8px var(--r))}}
+nav{background:#0009;border:1px solid color-mix(in srgb,var(--r) 40%,transparent);border-radius:99px;padding:3px;gap:2px}
+nav button{border-color:transparent;background:transparent;border-radius:99px}
+nav button.on{background:var(--r);box-shadow:var(--g)}
+.log{scroll-behavior:smooth}
+.msg{animation:pop .3s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}}
+.msg.ai{border-left:3px solid var(--r);background:linear-gradient(135deg,color-mix(in srgb,var(--r) 10%,#000),#000a)}
+.msg.user{background:linear-gradient(135deg,color-mix(in srgb,var(--r) 28%,#000),color-mix(in srgb,var(--r) 12%,#000))}
+.act{display:flex;gap:6px;margin-top:8px;opacity:.5;transition:opacity .15s}.act:hover{opacity:1}.act button{padding:2px 10px;font-size:12px;border-radius:99px}
+.sug{display:flex;flex-wrap:wrap;gap:8px;max-width:min(780px,92%)}
+.sug button{border-radius:99px;font-size:13px;padding:7px 14px;background:color-mix(in srgb,var(--r) 12%,#000);animation:pop .4s both}
+.sug button:nth-child(2){animation-delay:.07s}.sug button:nth-child(3){animation-delay:.14s}.sug button:nth-child(4){animation-delay:.21s}
+.bar{background:linear-gradient(transparent,#0009);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.bar textarea{max-height:140px;transition:box-shadow .2s}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--r) 45%,transparent);border-radius:8px}
+@media(prefers-reduced-motion:reduce){body::before,.brand svg,.msg,.sug button{animation:none}}
 </style></head><body>
 
 <div id="au" class="modal on" style="background:#000"><div class="card">
-<svg viewBox="0 0 64 64" width="64" style="align-self:center"><circle cx="32" cy="32" r="29" fill="#000" stroke="#ff1a2e" stroke-width="3"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="#ff1a2e" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="#ff1a2e"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="#ff1a2e" stroke-width="2"/></svg>
+<svg viewBox="0 0 64 64" width="64" style="align-self:center;color:var(--r)"><circle cx="32" cy="32" r="29" fill="#000" stroke="currentColor" stroke-width="3"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="currentColor" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="currentColor"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
 <h1>COOLKID CLIENT</h1>
 <input id="un" placeholder="Username" autocomplete="username">
 <input id="pw" type="password" placeholder="Password (4+ characters)" autocomplete="current-password">
@@ -96,7 +119,7 @@ pre code{background:none;padding:0}
 
 <header>
 <button id="mb" onclick="drawer(1)" aria-label="Chats and settings" style="font-size:20px;padding:4px 12px">☰</button>
-<div class="brand"><svg viewBox="0 0 64 64" width="30"><circle cx="32" cy="32" r="29" fill="#000" stroke="#ff1a2e" stroke-width="4"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="#ff1a2e" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="#ff1a2e"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="#ff1a2e" stroke-width="2"/></svg>COOLKID CLIENT</div>
+<div class="brand"><svg viewBox="0 0 64 64" width="30"><circle cx="32" cy="32" r="29" fill="#000" stroke="currentColor" stroke-width="4"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="currentColor" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="currentColor"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="currentColor" stroke-width="2"/></svg>COOLKID CLIENT</div>
 <nav><button class="on" data-t="chat">Chatbot</button><button data-t="code">Code</button><button data-t="games">Games</button></nav>
 <div class="tools"><button id="vb" title="Voice replies">🔊</button></div>
 </header>
@@ -112,12 +135,12 @@ pre code{background:none;padding:0}
 </main>
 
 <div id="dr" class="dr" onclick="if(event.target==this)drawer(0)"><aside>
-<div class="dh"><svg viewBox="0 0 64 64" width="30"><circle cx="32" cy="32" r="29" fill="#000" stroke="#ff1a2e" stroke-width="4"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="#ff1a2e" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="#ff1a2e"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="#ff1a2e" stroke-width="2"/></svg>CoolKid Client<button onclick="drawer(0)" aria-label="Close">✕</button></div>
+<div class="dh"><svg viewBox="0 0 64 64" width="30"><circle cx="32" cy="32" r="29" fill="#000" stroke="currentColor" stroke-width="4"/><path d="M14 54Q15 26 32 20Q49 26 50 54Z" fill="#1a0508" stroke="currentColor" stroke-width="2"/><path d="M21 37l10 3-10 1zM43 37l-10 3 10 1z" fill="currentColor"/><path d="M20 15l4 6 8-9 8 9 4-6-2 10H22z" fill="none" stroke="currentColor" stroke-width="2"/></svg>CoolKid Client<button onclick="drawer(0)" aria-label="Close">✕</button></div>
 <button class="rb" style="padding:12px" onclick="newChat()">＋ New chat</button>
-<small style="color:#ff9aa5">Saved chats</small>
+<small style="color:color-mix(in srgb,var(--r) 55%,#fff)">Saved chats</small>
 <div id="cl"></div>
 <button class="pi" onclick="drawer(0);openSet()"><span class="pic">⚙</span>Settings</button>
-<div id="ub" style="color:#ff9aa5;font-size:13px;text-align:center"></div>
+<div id="ub" style="color:color-mix(in srgb,var(--r) 55%,#fff);font-size:13px;text-align:center"></div>
 </aside></div>
 
 <div id="set" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card" style="width:min(520px,100%)">
@@ -127,16 +150,17 @@ pre code{background:none;padding:0}
 <label>About you</label><textarea id="s-about" placeholder="Stuff Coolkid should know: your age, hobbies, what you're into, what you're working on…" style="height:84px"></textarea>
 <label>Memory: Coolkid saves what you tell it and uses it in every chat (one fact per line, edit or delete freely)</label><textarea id="s-mem" placeholder="Nothing saved yet. Say 'remember that I like...' in a chat." style="height:84px"></textarea>
 <label>How Coolkid talks (tap again to unselect)</label><div class="row" id="st" style="flex-wrap:wrap"></div>
+<h3>Look</h3><label>Theme color</label><div class="row" id="th" style="flex-wrap:wrap"></div>
 <h3>API keys</h3>
-<small>Add up to 2 Gemini keys (free: aistudio.google.com/apikey) and 1 Groq key (free: console.groq.com/keys). Gemini requests rotate between your Gemini keys and skip any that fail or hit limits. The Groq key powers the Groq models in the model menu (More models). Pro-class models (4 Argon, 3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; on a free key they automatically use a Flash model instead. Web search runs through Google Search on the same key.</small>
-<label>Gemini key 1</label><input id="k0" type="password" placeholder="AIza..."><label>Gemini key 2</label><input id="k1" type="password" placeholder="AIza..."><label>Groq key</label><input id="k2" type="password" placeholder="gsk_...">
+<small>Add up to 2 Gemini keys (free: aistudio.google.com/apikey) and 1 Bolt key (free: console.groq.com/keys). Gemini requests rotate between your Gemini keys and skip any that fail or hit limits. The Bolt key powers the Coolkid Bolt models (model menu → More models). Coolkid 4 Argon can work on a free key. Some Pro-class models (3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; if your key does not allow a model, it automatically uses a Flash model instead. Web search runs through Google Search on the same key.</small>
+<label>Gemini key 1</label><input id="k0" type="password" placeholder="AIza..."><label>Gemini key 2</label><input id="k1" type="password" placeholder="AIza..."><label>Coolkid Bolt key</label><input id="k2" type="password" placeholder="gsk_...">
 <h3>Voice (all male)</h3><small>Tap one to hear it.</small><div class="row" id="vc" style="flex-wrap:wrap"></div>
 <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw" style="width:auto"> Allow occasional swearing in Chatbot</label>
 <h3>Chats and data</h3>
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.3. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.4. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="pv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><button onclick="$('#pv').classList.remove('on')">Close</button><iframe id="pvf" sandbox="allow-scripts"></iframe></div></div>
@@ -171,7 +195,7 @@ function start(){
  $('#au').classList.remove('on');
  D=JSON.parse(LS['ck_d_'+user]||'null')||{keys:['','',''],chat:[],code:[]};
  D.keys=D.keys||['','',''];if(/^gsk_/.test(D.keys[2]||'')){D.gk=D.gk||D.keys[2];D.keys[2]=''}else if(D.keys[2]&&!D.keys[1]){D.keys[1]=D.keys[2];D.keys[2]=''}
- D.model=D.model||'gemini-3-flash-preview';D.voice=D.voice||'Puck';D.eff=D.eff||'med';lab();$('#ub').textContent='👤 '+user;
+ D.model=D.model||'gemini-3-flash-preview';D.voice=D.voice||'Puck';D.eff=D.eff||'med';applyTheme();lab();$('#ub').textContent='👤 '+user;
  initChats();['chat','code'].forEach(renderPane);
  if(!D.keys.some(Boolean)&&!D.gk)openSet()}
 
@@ -204,7 +228,7 @@ function calc(s){
 
 /* ---------- Gemini (3 keys, rotating + failover) ---------- */
 const MODELS=[
-['ck-4','Coolkid 4 Argon','gemini-4-argon','Think deeply and carefully. Be exceptionally thorough and accurate, and reason step by step on hard problems.'],
+['ck-4','Coolkid 4 Argon','gemini-4-argon','Be sharp, accurate and direct. Lead with the answer and keep it tight unless the user asks for depth.','fast'],
 ['ck-3.8','Coolkid 3.8 Ultra','gemini-3.1-pro-preview','Think deeply and be exceptionally thorough, accurate and insightful.'],
 ['ck-3.7','Coolkid 3.7 Muse','gemini-3.1-pro-preview','Be wildly creative, original and imaginative.'],
 ['ck-3.6','Coolkid 3.6 Coder','gemini-3.1-pro-preview','Prioritize correct, clean, well-structured code and clear technical explanations.'],
@@ -213,8 +237,8 @@ const MODELS=[
 ['ck-3.3','Coolkid 3.3 Swift','gemini-2.5-flash','Answer quickly and keep it brief.'],
 ['ck-3.2','Coolkid 3.2 Lite','gemini-2.5-flash-lite',''],
 ['gemini-3.1-pro-preview','Coolkid 3.1 Pro'],['gemini-3-flash-preview','Coolkid 3 Flash'],['gemini-2.5-pro','Coolkid 2.5 Pro'],['gemini-2.5-flash','Coolkid 2.5 Flash'],['gemini-2.5-flash-lite','Coolkid 2.5 Flash-Lite'],
-['groq-oss120','Groq · GPT-OSS 120B','openai/gpt-oss-120b','','','groq'],['groq-oss20','Groq · GPT-OSS 20B (fastest)','openai/gpt-oss-20b','','fast','groq'],
-['groq-llama70','Groq · Llama 3.3 70B','llama-3.3-70b-versatile','','','groq'],['groq-llama8','Groq · Llama 3.1 8B (instant)','llama-3.1-8b-instant','','fast','groq']];
+['groq-oss120','Coolkid Bolt 120B','openai/gpt-oss-120b','','','groq'],['groq-oss20','Coolkid Bolt 20B (fastest)','openai/gpt-oss-20b','','fast','groq'],
+['groq-llama70','Coolkid Bolt 70B','llama-3.3-70b-versatile','','','groq'],['groq-llama8','Coolkid Bolt 8B (instant)','llama-3.1-8b-instant','','fast','groq']];
 const isG=k=>MD(k)[5]=='groq',isGq=m=>!/^gemini-/.test(m);
 const GFALL=['openai/gpt-oss-120b','llama-3.3-70b-versatile','llama-3.1-8b-instant'];
 const MD=k=>MODELS.find(x=>x[0]==k)||MODELS.find(x=>x[0]=='gemini-3-flash-preview');
@@ -237,7 +261,7 @@ function toOAI(model,rb){
  const m=[],sys=(rb.systemInstruction?.parts||[]).map(p=>p.text||'').join('');if(sys)m.push({role:'system',content:sys});
  const cs=rb.contents||[];
  cs.forEach((c,ci)=>{const txt=(c.parts||[]).map(p=>{
-   if(p.inlineData){if(ci==cs.length-1&&c.role!='model')throw Error('Groq models only read text. Pick a Gemini model for images, audio and PDFs, or attach a text file.');return '[attachment]'}
+   if(p.inlineData){if(ci==cs.length-1&&c.role!='model')throw Error('Bolt models only read text. Pick Coolkid 4 or 3.x for images, audio and PDFs, or attach a text file.');return '[attachment]'}
    return p.text||''}).filter(Boolean).join('\n\n');
   m.push({role:c.role=='model'?'assistant':'user',content:txt||' '})});
  const req={model,messages:m};
@@ -249,7 +273,7 @@ async function gem(ms,body){
  const{t,...rb}=body,list=[].concat(ms);let last='Request failed';
  if(!list.some(m=>[...gks,...gk].some(k=>!dead.has(m+'|'+k))))dead.clear();
  for(const model of list){const G=isGq(model),ks=G?gk:gks;
- if(!ks.length){last=G?'Add a Groq API key in settings ⚙ to use Groq models.':'Add a Gemini API key in settings ⚙ for this.';continue}
+ if(!ks.length){last=G?'Add a Bolt API key in settings ⚙ to use Bolt models.':'Add a Gemini API key in settings ⚙ for this.';continue}
  for(let i=0;i<ks.length;i++){
   const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id))continue;
   try{
@@ -257,7 +281,7 @@ async function gem(ms,body){
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(toOAI(model,rb))});
     const j=await r.json().catch(()=>({})),c=j.choices?.[0]?.message?.content;
     if(r.ok&&c){ki=(ki+i+1)%ks.length;return{candidates:[{content:{parts:[{text:c}]}}]}}
-    last=r.ok?'The model sent an empty reply':'Groq: '+(j.error?.message||'HTTP '+r.status);
+    last=r.ok?'The model sent an empty reply':'Bolt: '+(j.error?.message||'HTTP '+r.status);
     if(r.status==401||r.status==403||r.status==404)dead.add(id);
     continue}
    let cfg=t?{...rb,generationConfig:{thinkingConfig:tc(model)}}:rb,r,j;
@@ -286,25 +310,28 @@ function md(s){return esc(s).split('```').map((p,i)=>{
 function add(m,r,t,img){
  const l=$('#l-'+m),d=document.createElement('div');d.className='msg '+(r=='user'?'user':'ai');
  d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image"><a class="dl" href="${img}" download="coolkid.${img.slice(11,14)=='svg'?'svg':'png'}">Download</a>`:'');
+ if(r=='model'&&t){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button></div>')}
  l.append(d);l.scrollTop=l.scrollHeight;return d}
 const fmtT=ms=>{const n=Math.max(1,Math.round(ms/1000));return n<60?n+'s':Math.floor(n/60)+' min '+(n%60)+'s'};
 function dots(m,web){const d=add(m,'ai',''),pre=web?'Searching the web, thinking for ':'Thinking for ';
  d.innerHTML='<span class="dots"><i></i><i></i><i></i></span> <span class="tk dl">'+pre+'1s</span>';d.t0=Date.now();
  d.tm=setInterval(()=>{const k=d.querySelector('.tk');if(k)k.textContent=pre+fmtT(Date.now()-d.t0)},500);
  const rm=d.remove.bind(d);d.remove=()=>{clearInterval(d.tm);rm()};return d}
+const cpm=b=>{navigator.clipboard.writeText(b.closest('.msg').dataset.raw);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
+const spm=b=>speak(b.closest('.msg').dataset.raw,0,1);
 const cp=b=>{navigator.clipboard.writeText(b.closest('.cb').querySelector('code').textContent);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
 const run=b=>{$('#pvf').srcdoc=b.closest('.cb').querySelector('code').textContent;$('#pv').classList.add('on')};
-function openSet(){[0,1].forEach(i=>$('#k'+i).value=D?.keys[i]||'');$('#k2').value=D?.gk||'';vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';$('#s-mem').value=(D.mem||[]).join('\n');schips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
-function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.mem=$('#s-mem').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(-60);D.keys[0]=$('#k0').value.trim();D.keys[1]=$('#k1').value.trim();D.gk=$('#k2').value.trim();if(D.gk&&!/^gsk_/.test(D.gk))alert('That does not look like a Groq key (they start with gsk_). Saved anyway.');dead.clear();save();$('#set').classList.remove('on')}
+function openSet(){[0,1].forEach(i=>$('#k'+i).value=D?.keys[i]||'');$('#k2').value=D?.gk||'';vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';$('#s-mem').value=(D.mem||[]).join('\n');schips();tchips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
+function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.mem=$('#s-mem').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(-60);D.keys[0]=$('#k0').value.trim();D.keys[1]=$('#k1').value.trim();D.gk=$('#k2').value.trim();if(D.gk&&!/^gsk_/.test(D.gk))alert('That does not look like a Bolt key (they start with gsk_). Saved anyway.');dead.clear();save();$('#set').classList.remove('on')}
 
 /* ---------- voice + call ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let call=0,rec,think=0,att=[],webMode=0;
 const st=s=>$('#cs').textContent=s;
-let au,ttsOff;
+let au,ttsOff,spk=0;
 // 5 male Gemini voices
 const VOICES=[['Puck','Upbeat'],['Charon','Informative'],['Fenrir','Excitable'],['Orus','Firm'],['Iapetus','Clear']];
-const stopSpeak=()=>{try{au&&au.pause()}catch(e){}speechSynthesis.cancel()};
+const stopSpeak=()=>{spk++;try{au&&au.pause()}catch(e){}speechSynthesis.cancel()};
 function vchips(){$('#vc').innerHTML='';VOICES.forEach(([v,d])=>{const b=document.createElement('button');b.className='rb'+(v==D.voice?' sel':'');b.textContent=v+' · '+d;
  b.onclick=()=>{D.voice=v;save();vchips();speak("Yo, I'm Coolkid Client. This is my voice.",0,1)};$('#vc').append(b)})}
 function wav(b64){
@@ -313,19 +340,33 @@ function wav(b64){
  h.setUint32(24,24000,true);h.setUint32(28,48000,true);h.setUint16(32,2,true);h.setUint16(34,16,true);w(36,'data');h.setUint32(40,pcm.length,true);
  return new Blob([h,pcm],{type:'audio/wav'})}
 const maleV=()=>speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang)&&/male|david|mark|daniel|alex|fred|george|guy|ryan|james|aaron|arthur|oliver|rishi|thomas|evan/i.test(v.name)&&!/female/i.test(v.name));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function chunkText(t){const q=t.match(/[^.!?\n]+[.!?]*\s*/g)||[t],o=[];let c='';
+ q.forEach(x=>{c+=x;if(c.length>=(o.length?350:70)){o.push(c.trim());c=''}});if(c.trim())o.push(c.trim());return o.length?o:[t]}
+async function tts(c){const j=await gem(['gemini-3.1-flash-tts-preview','gemini-2.5-flash-preview-tts'],{contents:[{parts:[{text:c}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:D.voice}}}}});
+ const p=(j.candidates?.[0]?.content?.parts||[]).find(x=>x.inlineData);if(!p)throw Error('no audio');return URL.createObjectURL(wav(p.inlineData.data))}
+// Voice starts as soon as the FIRST short chunk is ready (usually well under 5s); later chunks are fetched while it plays.
+// If the first chunk is not back after 5s, the browser voice takes over so there is never a long silence.
 async function speak(t,cb,force){
  if(!(voice||call||force))return cb&&cb();
- stopSpeak();let done=0;const fin=()=>{if(!done){done=1;cb&&cb()}};
- const clean=t.replace(/```[\s\S]*?```/g,' code block ').replace(/[*`#]/g,'').slice(0,1200);
+ stopSpeak();const my=spk;let done=0;const fin=()=>{if(!done){done=1;cb&&cb()}},live=()=>my==spk&&!(cb==listen&&!call);
+ const clean=t.replace(/```[\s\S]*?```/g,' code block ').replace(/[*`#]/g,'').slice(0,1200).trim();
+ if(!clean)return fin();
  if(call)st('Speaking…');
- if(!ttsOff){try{
-  const j=await gem(['gemini-3.1-flash-tts-preview','gemini-2.5-flash-preview-tts'],{contents:[{parts:[{text:clean}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:D.voice}}}}});
-  const p=(j.candidates?.[0]?.content?.parts||[]).find(x=>x.inlineData);
-  if(cb==listen&&!call)return;
-  if(p){au=new Audio(URL.createObjectURL(wav(p.inlineData.data)));au.onended=au.onerror=fin;return au.play().catch(fin)}
- }catch(e){ttsOff=1}}
- if(!window.speechSynthesis)return fin();
- const u=new SpeechSynthesisUtterance(clean),v=maleV();if(v)u.voice=v;u.pitch=.6;u.onend=u.onerror=fin;speechSynthesis.speak(u)}
+ const bv=x=>{if(!x||!window.speechSynthesis)return fin();const u=new SpeechSynthesisUtterance(x),v=maleV();if(v)u.voice=v;u.pitch=.6;u.onend=u.onerror=fin;speechSynthesis.speak(u)};
+ const ps=chunkText(clean),P=[],get=i=>{if(i<ps.length&&!P[i]){P[i]=tts(ps[i]);P[i].catch(()=>{})}return P[i]};
+ if(!ttsOff){
+  get(0);get(1);let u0=null;
+  try{u0=await(force?P[0]:Promise.race([P[0],sleep(5000).then(()=>null)]))}catch(e){if(/Add a Gemini|Add at least/.test(e.message))ttsOff=1}
+  if(!live())return;
+  if(u0){
+   for(let i=0;i<ps.length;i++){
+    const u=i?await P[i].catch(()=>null):u0;if(!live())return;if(!u)return bv(ps.slice(i).join(' '));
+    get(i+2);
+    const ok=await new Promise(r=>{au=new Audio(u);au.onended=()=>r(1);au.onerror=()=>r(0);au.play().catch(()=>r(0))});
+    if(!live())return;if(!ok)return bv(ps.slice(i+1).join(' '))}
+   return fin()}}
+ bv(clean)}
 $('#vb').style.opacity=voice?1:.4;
 $('#vb').onclick=()=>{voice=!voice;LS.ck_voice=voice?1:0;$('#vb').style.opacity=voice?1:.4;stopSpeak()};
 function startCall(){
@@ -356,7 +397,7 @@ think:'<svg viewBox="0 0 24 24" style="stroke-width:2.3"><path d="M5.6 17.6A8 8 
 IC.x='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 IC.web='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>';
 function plus(b,m){
- pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['web','Search the web'+(isG(D.model)?' (Gemini only)':'')+(webMode?' ✓':''),IC.web],['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
+ pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['web','Search the web'+(isG(D.model)?' (not on Bolt)':'')+(webMode?' ✓':''),IC.web],['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
   if(v=='img'){imgMode^=1;chips()}else if(v=='think'){think^=1;chips()}else if(v=='web'){webMode^=1;chips()}else $('#f-'+v).click()})}
 const pickM=v=>{D.model=v;save();lab()};
 function modelMenu(b){
@@ -381,12 +422,12 @@ function chips(){
 /* ---------- chat + code ---------- */
 ['chat','code'].forEach(m=>{
  $('#'+m).innerHTML=`<div class="log" id="l-${m}"></div><div class="bar"><div class="at"></div><textarea id="i-${m}" placeholder="${m=='chat'?'Ask anything, or say "draw a ..." to make an image':'Describe the code you need'}"></textarea><div class="cr"><button class="rc pb" onclick="plus(this,'${m}')" title="Add" aria-label="Add" style="font-size:28px;font-weight:700">+</button><button class="rb pb mdl" onclick="modelMenu(this)" title="Coolkid version"></button><button class="rb pb eff" onclick="effMenu(this)" title="Effort"></button><span class="sp"></span><button class="rc" onclick="startCall()" title="Call" aria-label="Call"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 10v4M10 5v14M14 8v8M18 10.5v3"/></svg></button><button class="rc" onclick="send('${m}')" title="Send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div>`;
- $('#i-'+m).onkeydown=e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send(m)}}});
+ $('#i-'+m).oninput=function(){this.style.height='46px';this.style.height=Math.min(this.scrollHeight,140)+'px'};$('#i-'+m).onkeydown=e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send(m)}}});
 
 const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|sketch|illustrate)\b|(?:generate|create|make|design|render|imagine|show)\b.{0,40}?\b(?:image|picture|pic|photo|art|artwork|drawing|illustration|logo|wallpaper|poster|avatar|pfp|portrait|banner|sticker|thumbnail)s?\b)/i.test(t);
 async function send(m){
  const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;
- const files=att;att=[];chips();inp.value='';busy=1;
+ const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;
  add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||needsWeb(t))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t)&&!isG(D.model),d=dots(m,web);if(call)st('Thinking…');
  let a;
  try{
@@ -420,7 +461,7 @@ async function send(m){
    let ft='⏱ Thought for '+fmtT(dt);
    if(src.length)ft+=' · 🌐 '+src.map(w=>'<a href="'+w.uri.replace(/"/g,'%22')+'" target="_blank" rel="noopener">'+esc(w.title||'source')+'</a>').join(' · ');
    if(rm.length)ft+='<br>🧠 Saved to memory: '+esc(rm.join('; '));
-   el.insertAdjacentHTML('beforeend','<div class="dl">'+ft+'</div>')}
+   const af=el.querySelector('.act');(af||el).insertAdjacentHTML(af?'beforebegin':'beforeend','<div class="dl">'+ft+'</div>')}
  }catch(e){d.remove();if(D[m].at(-1)?.r=='user')D[m].pop();add(m,'model','⚠ '+e.message)}
  busy=0;
  if(call){a?speak(a,listen):setTimeout(listen,1500)}else if(a&&m=='chat')speak(a)}
@@ -446,6 +487,9 @@ const memTxt=()=>D.mem&&D.mem.length?' Long-term memory (facts you saved about t
 function remember(f){D.mem=D.mem||[];f.forEach(x=>{x=x.trim().slice(0,200);if(x&&!D.mem.some(y=>y.toLowerCase()==x.toLowerCase()))D.mem.push(x)});D.mem=D.mem.slice(-60)}
 const STY={chill:'Talk in a relaxed, friendly, casual tone.',hype:'Talk with high energy and hype, lots of enthusiasm.',serious:'Be professional, precise and formal.',short:'Keep every answer as brief as possible.'};
 const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+RULES;
+const THEMES=[['Red','#ff1a2e'],['Cyan','#00b8ff'],['Green','#1fd65f'],['Purple','#a64dff'],['Pink','#ff2bb0'],['Orange','#ff7a00']];
+const applyTheme=()=>document.documentElement.style.setProperty('--r',D.theme||'#ff1a2e');
+function tchips(){$('#th').innerHTML='';THEMES.forEach(([n,c])=>{const b=document.createElement('button');b.className='rb';b.textContent=n;b.style.background=c;b.style.outline=(D.theme||'#ff1a2e')==c?'2px solid #fff':'none';b.onclick=()=>{D.theme=c;save();applyTheme();tchips()};$('#th').append(b)})}
 function schips(){$('#st').innerHTML='';Object.keys(STY).forEach(k=>{const b=document.createElement('button');b.className='rb'+(D.style==k?' sel':'');b.textContent=k[0].toUpperCase()+k.slice(1);
  b.onclick=()=>{D.style=D.style==k?'':k;save();schips()};$('#st').append(b)})}
 function initChats(){
@@ -453,9 +497,13 @@ function initChats(){
  D.cur=D.cur||{};
  ['chat','code'].forEach(m=>{let c=D.chats.find(x=>x.id==D.cur[m]&&x.m==m)||D.chats.find(x=>x.m==m);
   if(!c){c=blank(m);D.chats.unshift(c)}D.cur[m]=c.id;D[m]=c.msgs})}
+const SUGC=['🎨 Draw a neon cyberpunk city','🧮 Solve 12345×6789÷3',"🌐 What's the latest tech news?","🧠 Explain black holes like I'm 12"],SUGK=['⚡ Build a todo app in HTML','🐍 Python script to rename files','🧩 Explain recursion with code'];
+function sug(m){const l=$('#l-'+m),w=document.createElement('div');w.className='sug';
+ (m=='chat'?SUGC:SUGK).forEach(x=>{const b=document.createElement('button');b.textContent=x;b.onclick=()=>{$('#i-'+m).value=x.replace(/^\\S+\\s/,'');send(m)};w.append(b)});l.append(w)}
 function renderPane(m){
  const l=$('#l-'+m);l.innerHTML='';D[m].forEach(x=>add(m,x.r,x.t));
- if(!D[m].length)add(m,'model',m=='chat'?"Yo, I'm **Coolkid Client**. Ask me anything, tell me to draw something, or hit the call button and talk to me.":"Code mode online. Tell me what to build. HTML blocks get a Run ▶ button.")}
+ if(!D[m].length)add(m,'model',m=='chat'?"Yo, I'm **Coolkid Client**. Ask me anything, tell me to draw something, or hit the call button and talk to me.":"Code mode online. Tell me what to build. HTML blocks get a Run ▶ button.");
+ if(!D[m].length)sug(m)}
 function setCur(c){D.cur[c.m]=c.id;D[c.m]=c.msgs;renderPane(c.m);goTab(c.m);save();drawer(0)}
 function drawer(o){$('#dr').classList.toggle('on',!!o);if(o)clist()}
 function clist(){

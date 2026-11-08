@@ -15,11 +15,13 @@ No backend, no build step, no dependencies. Just one `index.html`.
 - **Model picker**: Coolkid 3.2 to 4 presets plus direct Gemini models, with Low/Medium/High effort and a "Think harder" toggle.
 - **Exact calculator**: type any arithmetic (e.g. `73196491+83719471×8371993÷819`) and it is solved instantly with big-number fractions, so there are no guesses or rounding errors. Word problems use Gemini code execution.
 - **Long-term memory**: Coolkid saves lasting facts you tell it (or say "remember that...") and uses them in every chat. View, edit, or delete them in **Settings → Memory**.
-- **Gemini 4**: **Coolkid 4 Argon** runs on `gemini-4-argon`, Google's newest flagship model. It needs a key with billing; on a free key the app falls back to a Flash model automatically.
+- **Gemini 4**: **Coolkid 4 Argon** runs on `gemini-4-argon`, Google's newest flagship model, in Fast effort by default for quick replies. It can work on a free key; if your key doesn't allow it, the app falls back to a Flash model automatically.
 - **Web search**: tap **+ → Search the web** (or ask about news, prices, weather, scores, and so on) and answers are grounded in Google Search, with source links under the reply.
 - **Thinking timer**: while waiting you see "Thinking for 12s", and each reply ends with "Thought for 12s".
 - **Fast mode**: Coolkid 3.5 Smart defaults to the **Fast** effort level (limited thinking). Pick Medium or High in the effort menu for deeper answers.
-- **Groq models**: add a Groq key in Settings to use GPT-OSS 120B, GPT-OSS 20B, Llama 3.3 70B, and Llama 3.1 8B. They are in the model menu under **More models**. Groq models read text only, and web search and image generation still use Gemini.
+- **Coolkid Bolt models**: add a Groq key (free at [console.groq.com/keys](https://console.groq.com/keys)) in Settings to use Bolt 120B, 20B, 70B and 8B (GPT-OSS and Llama models running on Groq). Find them in the model menu under **More models**. Bolt models read text only, and web search and image generation still use Gemini.
+- **Faster voice**: replies are spoken in short chunks, so the voice starts within about 5 seconds of the text (the browser voice steps in if it's slower) while the rest is prepared as it plays.
+- **UI upgrades**: six theme colors (Settings → Look), animated neon grid, glass header, animated messages, Copy and Play buttons on replies, tap-to-start suggestion chips, and an auto-growing input box.
 - **Multi-key rotation**: add up to 2 Gemini keys (requests rotate between them and skip any that fail) plus 1 Groq key.
 - **Local accounts**: multiple profiles stored on your device, with chat export to JSON.
 
