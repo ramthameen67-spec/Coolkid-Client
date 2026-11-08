@@ -128,7 +128,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 
 <div id="upd" class="modal" onclick="if(event.target==this)closeUpd()"><div class="card" style="max-height:85vh;overflow:auto;text-align:left">
 <h3>🔔 Updates</h3>
-<h4>v1.9 <span class="utag">NEW</span></h4><ul>
+<h4>v2.0 <span class="utag">NEW</span></h4><ul><li><b>Argon fix.</b> Argon now uses the thinking levels it really supports and Coolkid finds its real model name on your key.</li><li>If Argon is silent for 6 seconds, a backup model races it and whichever speaks first wins.</li><li>Argon no longer auto-runs web search or code execution (use the + menu when you want them).</li></ul><h4>v1.9</h4><ul>
 <li><b>Coolkid 4 Argon is way faster.</b> Replies now stream in word by word instead of showing up all at once, and Argon thinks at its lowest setting.</li>
 <li>If a model is stuck, Coolkid gives up after a few seconds and switches to a faster backup instead of making you wait minutes. A slow model is skipped for 5 minutes.</li>
 <li>New updates bell (this panel).</li></ul>
@@ -183,7 +183,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.9. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v2.0. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="iv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card" style="width:min(520px,100%);align-items:center">
@@ -229,7 +229,7 @@ function start(){
 /* ---------- exact calculator (no guessing, no rounding errors) ---------- */
 const gcd=(a,b)=>{if(a<0n)a=-a;if(b<0n)b=-b;while(b){[a,b]=[b,a%b]}return a};
 const fr=(n,d=1n)=>{if(d==0n)throw Error('Can not divide by zero.');if(d<0n){n=-n;d=-d}const g=gcd(n,d)||1n;return{n:n/g,d:d/g}};
-const mathy=t=>/\d\s*[+×÷*\/^]\s*\d|\d\s+[-x]\s+\d|\b(calculate|compute|solve|equation|percent|factorial|prime|derivative|integral|sqrt|square root|modulo|remainder|average|probability|how many|how much)\b/i.test(t);
+const mathy=t=>/\d\s*[+×÷*\/^]\s*\d|\d\s+[-x]\s+\d|\b(calculate|compute|solve|equation|percent|factorial|prime|derivative|integral|sqrt|square root|modulo|remainder|average|probability)\b/i.test(t);
 const needsWeb=t=>/\b(today|tonight|latest|news|current(ly)?|right now|this (week|month|year)|recent(ly)?|price of|stock|weather|forecast|score|who won|release date|search|google|look up|trending|2026|2027)\b/i.test(t);
 function fmtR(v){
  const neg=v.n<0n,n=neg?-v.n:v.n,S=10n**12n,q=(n*S*2n+v.d)/(v.d*2n),exact=(n*S)%v.d==0n;
@@ -295,62 +295,108 @@ function toOAI(model,rb){
  const req={model,messages:m};
  if(/gpt-oss/.test(model))req.reasoning_effort={low:'low',med:'medium',high:'high'}[think?'high':call?'low':ef()];
  return req}
-// One Gemini call. With onText it streams (words appear as they arrive); to = ms to wait for the FIRST bytes before giving up.
-async function callG(model,key,cfg,onText,to){
+// ===== v2.0 call layer =====
+// Argon only supports thinkingLevel low/medium/high (no "minimal", no thinkingBudget), so it gets its own ladder.
+const THK={},AV={},avT={};
+const RULES_FAST=' Memory: if the user shares a lasting personal fact or preference (name, job, goals, likes, projects, how they like answers) or asks you to remember something, end your reply with a tag like [[remember: short fact]], one tag per fact, and never mention or explain the tag. Do not tag trivial or temporary things.';
+function ladder(m){
+ const q=fast()&&ef()=='low'&&!think&&!call&&!/pro/.test(m),k=m+(q?'|q':'');
+ if(!q)return{k,s:[tc(m),null]};
+ if(/argon/.test(m))return{k,s:[{thinkingLevel:'low'},null]};
+ if(/gemini-[34]/.test(m))return{k,s:[{thinkingLevel:'minimal'},{thinkingLevel:'low'},{thinkingBudget:0},null]};
+ return{k,s:[{thinkingBudget:0},null]}}
+// Ask each key which models it can really use (also warms the connection). Finds the real Argon id, skips models a key doesn't have.
+async function loadAV(key){
+ if(AV[key]||(avT[key]||0)>Date.now())return;avT[key]=Date.now()+60000;
+ const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),4000),s=new Set();let pt='';
+ try{for(let n=0;n<4;n++){
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000'+(pt?'&pageToken='+encodeURIComponent(pt):''),{headers:{'x-goog-api-key':key},signal:ac.signal});
+  if(!r.ok)return;const j=await r.json();
+  (j.models||[]).forEach(m=>{if(!m.supportedGenerationMethods||m.supportedGenerationMethods.includes('generateContent'))s.add(m.name.replace(/^models\//,''))});
+  if(!(pt=j.nextPageToken))break}
+  if(s.size)AV[key]=s}catch(e){}finally{clearTimeout(tm)}}
+const avail=ks=>Promise.race([Promise.all(ks.map(loadAV)),sleep(4000)]);
+function pick(model,key){
+ const s=AV[key];if(!s||s.has(model))return model;
+ if(/argon/.test(model)){const a=[...s].filter(x=>/argon/.test(x)&&!/image|tts|embed|live|audio/.test(x)).sort((a,b)=>a.length-b.length)[0];if(a)return a}
+ return null}
+// Start jobs one after another; the next one starts when the last one fails OR after `gap` ms of silence.
+// The first job to claim() (first word streamed, or finished) wins and the rest are aborted.
+function stagger(jobs,gap){
+ return new Promise((ok,no)=>{
+  const acs=[],errs=[];let next=0,live=0,win=-1,tm;
+  const launch=()=>{
+   clearTimeout(tm);if(win>=0)return;
+   if(next>=jobs.length){if(!live)no(errs);return}
+   const i=next++,ac=new AbortController();acs[i]=ac;live++;tm=setTimeout(launch,gap);
+   const claim=()=>{if(win<0){win=i;clearTimeout(tm);acs.forEach((a,k)=>k!=i&&a.abort())}return win==i};
+   jobs[i](ac,claim).then(v=>{if(claim())ok(v)},e=>{live--;errs.push(e);if(win==i)return no(errs);launch()})};
+  launch()})}
+async function callG(model,key,cfg,onText,to,ac,claim){
  const H={'Content-Type':'application/json','x-goog-api-key':key},U='https://generativelanguage.googleapis.com/v1beta/models/'+model;
- if(!onText){const r=await fetch(U+':generateContent',{method:'POST',headers:H,body:JSON.stringify(cfg)});return{r,j:await r.json().catch(()=>({}))}}
- const ac=new AbortController();let tm=setTimeout(()=>ac.abort(),to||15000);
+ let tm=setTimeout(()=>ac.abort('timeout'),to);
  try{
+  if(!onText){const r=await fetch(U+':generateContent',{method:'POST',headers:H,body:JSON.stringify(cfg),signal:ac.signal});return{r,j:await r.json().catch(()=>({}))}}
   const r=await fetch(U+':streamGenerateContent?alt=sse',{method:'POST',headers:H,body:JSON.stringify(cfg),signal:ac.signal});
-  if(!r.ok){clearTimeout(tm);return{r,j:await r.json().catch(()=>({}))}}
+  if(!r.ok)return{r,j:await r.json().catch(()=>({}))};
   const rd=r.body.getReader(),dc=new TextDecoder();let buf='',acc='',gm=null,fin=null,pf=null;
-  for(;;){
+  try{for(;;){
    const{done,value}=await rd.read();if(done)break;
-   clearTimeout(tm);tm=setTimeout(()=>ac.abort(),25000);
+   clearTimeout(tm);tm=setTimeout(()=>ac.abort('timeout'),25000);
    buf+=dc.decode(value,{stream:true}).replace(/\r\n/g,'\n');
    let i;while((i=buf.indexOf('\n\n'))>=0){const ev=buf.slice(0,i);buf=buf.slice(i+2);
     const ln=ev.split('\n').find(l=>l.startsWith('data:'));if(!ln)continue;
     let o;try{o=JSON.parse(ln.slice(5))}catch(e){continue}
     const c=o.candidates?.[0];if(o.promptFeedback)pf=o.promptFeedback;
-    (c?.content?.parts||[]).forEach(p=>{if(p.text&&!p.thought){acc+=p.text;onText(acc)}});
-    if(c?.groundingMetadata)gm=c.groundingMetadata;if(c?.finishReason)fin=c.finishReason}}
-  clearTimeout(tm);
+    (c?.content?.parts||[]).forEach(p=>{if(p.text&&!p.thought){if(!claim())throw Error('lost the race');acc+=p.text;onText(acc)}});
+    if(c?.groundingMetadata)gm=c.groundingMetadata;if(c?.finishReason)fin=c.finishReason}}}
+  catch(e){if(!acc)throw e}  // stalled mid-answer: keep what already arrived
   return{r,j:{candidates:[{content:{parts:acc?[{text:acc}]:[]},groundingMetadata:gm,finishReason:fin}],promptFeedback:pf}}
- }catch(e){clearTimeout(tm);throw e.name=='AbortError'?Error('timeout'):e}}
+ }catch(e){throw ac.signal.aborted&&ac.signal.reason=='timeout'?Error('timeout'):e}
+ finally{clearTimeout(tm)}}
+async function runG(J,rb,t,to,onText,ac,claim){
+ const{model,key}=J,bs=rb.generationConfig?rb:{...rb,generationConfig:{temperature:TEMP,topP:0.97}},lad=t?ladder(model):{k:model,s:[null]};
+ let li=Math.min(THK[lad.k]||0,lad.s.length-1),x={...bs},r,j;
+ for(let n=0;n<5;n++){
+  const gc={...x.generationConfig},th=lad.s[li];delete gc.thinkingConfig;if(th)gc.thinkingConfig=th;
+  ({r,j}=await callG(model,key,{...x,generationConfig:gc},onText,to,ac,claim));
+  if(!r.ok&&r.status==400){const e4=j.error?.message||'';
+   if(t&&/think/i.test(e4)&&li<lad.s.length-1){THK[lad.k]=++li;continue}
+   if(x.tools&&/tool|code|search|ground/i.test(e4)){const T=x.tools.filter(o=>o.google_search),{tools:_t,...y}=x;x=T.length&&T.length<_t.length?{...x,tools:T}:y;continue}}
+  break}
+ if(r.ok){
+  if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){j.__m=J.want;return j}
+  throw Error(j.promptFeedback?.blockReason?'Blocked: '+j.promptFeedback.blockReason:'The model sent an empty reply'+(j.candidates?.[0]?.finishReason?' ('+j.candidates[0].finishReason+')':''))}
+ const m=j.error?.message||'HTTP '+r.status;throw Object.assign(Error(m),{perm:permFail(r.status,m)})}
+async function runQ(J,rb,ac){
+ const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+J.key},body:JSON.stringify(toOAI(J.model,rb)),signal:ac.signal});
+ const j=await r.json().catch(()=>({})),c=j.choices?.[0]?.message?.content;
+ if(r.ok&&c)return{candidates:[{content:{parts:[{text:c}]}}],__m:J.want};
+ throw Object.assign(Error(r.ok?'The model sent an empty reply':'Bolt: '+(j.error?.message||'HTTP '+r.status)),{dead:[401,403,404].includes(r.status)})}
 async function gem(ms,body){
  const gk=[...new Set([D.gk,...D.keys.filter(k=>/^gsk_/.test(k||''))].filter(Boolean))],gks=D.keys.filter(k=>k&&!/^gsk_/.test(k));
  if(!gks.length&&!gk.length){openSet();throw Error('Add at least one API key in settings ⚙')}
  const{t,to,onText,...rb}=body,list=[].concat(ms);let last='Request failed';
- if(!list.some(m=>[...gks,...gk].some(k=>!dead.has(m+'|'+k)&&!((slow[m+'|'+k]||0)>Date.now()))))dead.clear(),Object.keys(slow).forEach(k=>delete slow[k]);
- for(const model of list){const G=isGq(model),ks=G?gk:gks;
- if(!ks.length){last=G?'Add a Bolt API key in settings ⚙ to use Bolt models.':'Add a Gemini API key in settings ⚙ for this.';continue}
- for(let i=0;i<ks.length;i++){
-  const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id)||(slow[id]||0)>Date.now())continue;
-  try{
-   if(G){
-    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(toOAI(model,rb))});
-    const j=await r.json().catch(()=>({})),c=j.choices?.[0]?.message?.content;
-    if(r.ok&&c){ki=(ki+i+1)%ks.length;return{candidates:[{content:{parts:[{text:c}]}}]}}
-    last=r.ok?'The model sent an empty reply':'Bolt: '+(j.error?.message||'HTTP '+r.status);
-    if(r.status==401||r.status==403||r.status==404)dead.add(id);
-    continue}
-   const bs=rb.generationConfig?rb:{...rb,generationConfig:{temperature:TEMP,topP:0.97}};
-   let cfg=t?{...bs,generationConfig:{...bs.generationConfig,thinkingConfig:tc(model)}}:bs,r,j;
-   for(let n=0;n<3;n++){
-    ({r,j}=await callG(model,key,cfg,onText,to));
-    // 400 complaining about the thinking setting: retry the same model once without it
-    if(!r.ok&&r.status==400){const e4=j.error?.message||'';
-     if(t&&cfg.generationConfig&&/think/i.test(e4)){if(minOK&&cfg.generationConfig.thinkingConfig?.thinkingLevel=='minimal'){minOK=false;cfg={...cfg,generationConfig:{...cfg.generationConfig,thinkingConfig:tc(model)}}}else{const{thinkingConfig:_k,...gx}=cfg.generationConfig;cfg={...cfg,generationConfig:gx}}}
-     else if(cfg.tools&&/tool|code|search|ground/i.test(e4)){const{tools:_t,...x}=cfg;cfg=_t.length>1?{...x,tools:_t.filter(o=>o.google_search)}:x}
-     else break}else break}
-   if(r.ok){
-    if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){ki=(ki+i+1)%ks.length;j.__m=model;return j}
-    // 200 but nothing usable (blocked / empty): try the next model instead of showing "(empty reply)"
-    last=j.promptFeedback?.blockReason?'Blocked: '+j.promptFeedback.blockReason:'The model sent an empty reply'+(j.candidates?.[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'');continue}
-   last=j.error?.message||'HTTP '+r.status;
-   if(permFail(r.status,last))dead.add(id)}
-  catch(e){if(e.message=='timeout'){last='That model took too long to answer';slow[id]=Date.now()+300000}else last=e.message}}}
- throw Error(last)}
+ await avail(gks);
+ const mk=()=>{const a=[];
+  for(const model of list){const G=isGq(model),ks=G?gk:gks;
+   if(!ks.length){last=G?'Add a Bolt API key in settings ⚙ to use Bolt models.':'Add a Gemini API key in settings ⚙ for this.';continue}
+   ks.forEach((_,i)=>{const key=ks[(ki+i)%ks.length],real=G?model:pick(model,key);if(!real)return;
+    const J={want:model,model:real,key,G,id:model+'|'+key,r:i};if(!dead.has(J.id)&&!((slow[J.id]||0)>Date.now()))a.push(J)})}
+  return a};
+ let jobs=mk();
+ if(!jobs.length){dead.clear();Object.keys(slow).forEach(k=>delete slow[k]);jobs=mk()}
+ if(!jobs.length)throw Error(last);
+ // Fast models (Argon, Smart, Bolt fast): if no first word after 6s, race the next model and take whoever speaks first.
+ const hedge=!!onText&&fast()&&jobs.length>1;if(hedge)jobs.sort((a,b)=>a.r-b.r);
+ const to2=to||(onText?15000:60000);
+ try{
+  const j=await stagger(jobs.map(J=>(ac,claim)=>(J.G?runQ(J,rb,ac):runG(J,rb,t,to2,onText,ac,claim)).catch(e=>{
+   if(e.dead||e.perm)dead.add(J.id);
+   if(e.message=='timeout'){slow[J.id]=Date.now()+300000;e=Error('That model took too long to answer')}
+   last=e.message;throw e})),hedge?6000:1e9);
+  ki++;return j}
+ catch(e){throw Error(last)}}
 
 /* ---------- UI helpers ---------- */
 function md(s){return esc(s).split('```').map((p,i)=>{
@@ -499,7 +545,7 @@ const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|
 async function send(m){
  const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;TEMP=m=='code'?0.7:1.3;
  const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;
- add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||needsWeb(t))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t)&&!isG(D.model),d=dots(m,web);if(call)st('Thinking…');
+ add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||(needsWeb(t)&&!fast()))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t)&&!isG(D.model),d=dots(m,web);if(call)st('Thinking…');
  let a;
  try{
   if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t))){
@@ -527,7 +573,7 @@ async function send(m){
   }else{
    D[m].push({r:'user',t:t||'Describe the attached file(s).',a:files});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=(t||files[0]?.name||'Attachment').slice(0,40)}
-   const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
+   const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)&&(!fast()||think)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
    const j=await gem(MS(),{t:1,to:fast()?10000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
    a=txt(j)||'(empty reply)';
    const rm=[...a.matchAll(/\[\[\s*remember:\s*([^\]]+?)\s*\]\]/gi)].map(x=>x[1]);
@@ -562,7 +608,7 @@ const RULES=' Accuracy rules: never guess at arithmetic. Work every calculation 
 const memTxt=()=>D.mem&&D.mem.length?' Long-term memory (facts you saved about the user from earlier chats; use them naturally, do not recite them): '+D.mem.join('; ')+'.':'';
 function remember(f){D.mem=D.mem||[];f.forEach(x=>{x=x.trim().slice(0,200);if(x&&!D.mem.some(y=>y.toLowerCase()==x.toLowerCase()))D.mem.push(x)});D.mem=D.mem.slice(-60)}
 const STY={chill:'Talk in a relaxed, friendly, casual tone.',hype:'Talk with high energy and hype, lots of enthusiasm.',serious:'Be professional, precise and formal.',short:'Keep every answer as brief as possible.'};
-const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+RULES;
+const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+(fast()&&!think?RULES_FAST:RULES);
 const THEMES=[['Red','#ff1a2e'],['Cyan','#00b8ff'],['Green','#1fd65f'],['Purple','#a64dff'],['Pink','#ff2bb0'],['Orange','#ff7a00']];
 const applyTheme=()=>document.documentElement.style.setProperty('--r',D.theme||'#ff1a2e');
 function tchips(){$('#th').innerHTML='';THEMES.forEach(([n,c])=>{const b=document.createElement('button');b.className='rb';b.textContent=n;b.style.background=c;b.style.outline=(D.theme||'#ff1a2e')==c?'2px solid #fff':'none';b.onclick=()=>{D.theme=c;save();applyTheme();tchips()};$('#th').append(b)})}
@@ -608,9 +654,10 @@ function delAcc(){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button,.pane').forEach(x=>x.classList.remove('on'));
  b.classList.add('on');tab=b.dataset.t;$('#'+b.dataset.t).classList.add('on')});
-const UPV='1.9';
+const UPV='2.0';
 function openUpd(){$('#upd').classList.add('on');LS.ck_seen=UPV;$('#bell').classList.remove('new')}
 function closeUpd(){$('#upd').classList.remove('on')}
 if(LS.ck_seen!=UPV)$('#bell').classList.add('new');
 user=LS.ck_user;if(user&&JSON.parse(LS.ck_users||'{}')[user])start();
+setTimeout(()=>{try{D&&avail(D.keys.filter(k=>k&&!/^gsk_/.test(k)))}catch(e){}},300);
 </script></body></html>
