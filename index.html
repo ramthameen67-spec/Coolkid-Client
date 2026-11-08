@@ -128,15 +128,15 @@ pre code{background:none;padding:0}
 <label>Memory: Coolkid saves what you tell it and uses it in every chat (one fact per line, edit or delete freely)</label><textarea id="s-mem" placeholder="Nothing saved yet. Say 'remember that I like...' in a chat." style="height:84px"></textarea>
 <label>How Coolkid talks (tap again to unselect)</label><div class="row" id="st" style="flex-wrap:wrap"></div>
 <h3>API keys</h3>
-<small>Add up to 3. Requests rotate between them and skip any key that fails or hits its limit. Free keys: aistudio.google.com/apikey. Pro-class models (4 Argon, 3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; on a free key they automatically use a Flash model instead. Web search runs through Google Search on the same key.</small>
-<label>Key 1</label><input id="k0" type="password"><label>Key 2</label><input id="k1" type="password"><label>Key 3</label><input id="k2" type="password">
+<small>Add up to 2 Gemini keys (free: aistudio.google.com/apikey) and 1 Groq key (free: console.groq.com/keys). Gemini requests rotate between your Gemini keys and skip any that fail or hit limits. The Groq key powers the Groq models in the model menu (More models). Pro-class models (4 Argon, 3.8, 3.7, 3.6, 3.1 Pro) need a key with billing turned on; on a free key they automatically use a Flash model instead. Web search runs through Google Search on the same key.</small>
+<label>Gemini key 1</label><input id="k0" type="password" placeholder="AIza..."><label>Gemini key 2</label><input id="k1" type="password" placeholder="AIza..."><label>Groq key</label><input id="k2" type="password" placeholder="gsk_...">
 <h3>Voice (all male)</h3><small>Tap one to hear it.</small><div class="row" id="vc" style="flex-wrap:wrap"></div>
 <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw" style="width:auto"> Allow occasional swearing in Chatbot</label>
 <h3>Chats and data</h3>
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.2. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.3. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="pv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><button onclick="$('#pv').classList.remove('on')">Close</button><iframe id="pvf" sandbox="allow-scripts"></iframe></div></div>
@@ -170,9 +170,10 @@ function out(){LS.removeItem('ck_user');location.reload()}
 function start(){
  $('#au').classList.remove('on');
  D=JSON.parse(LS['ck_d_'+user]||'null')||{keys:['','',''],chat:[],code:[]};
+ D.keys=D.keys||['','',''];if(/^gsk_/.test(D.keys[2]||'')){D.gk=D.gk||D.keys[2];D.keys[2]=''}else if(D.keys[2]&&!D.keys[1]){D.keys[1]=D.keys[2];D.keys[2]=''}
  D.model=D.model||'gemini-3-flash-preview';D.voice=D.voice||'Puck';D.eff=D.eff||'med';lab();$('#ub').textContent='👤 '+user;
  initChats();['chat','code'].forEach(renderPane);
- if(!D.keys.some(Boolean))openSet()}
+ if(!D.keys.some(Boolean)&&!D.gk)openSet()}
 
 /* ---------- exact calculator (no guessing, no rounding errors) ---------- */
 const gcd=(a,b)=>{if(a<0n)a=-a;if(b<0n)b=-b;while(b){[a,b]=[b,a%b]}return a};
@@ -211,7 +212,11 @@ const MODELS=[
 ['ck-3.4','Coolkid 3.4 Chill','gemini-3-flash-preview','Be relaxed, casual and straight to the point.'],
 ['ck-3.3','Coolkid 3.3 Swift','gemini-2.5-flash','Answer quickly and keep it brief.'],
 ['ck-3.2','Coolkid 3.2 Lite','gemini-2.5-flash-lite',''],
-['gemini-3.1-pro-preview','Coolkid 3.1 Pro'],['gemini-3-flash-preview','Coolkid 3 Flash'],['gemini-2.5-pro','Coolkid 2.5 Pro'],['gemini-2.5-flash','Coolkid 2.5 Flash'],['gemini-2.5-flash-lite','Coolkid 2.5 Flash-Lite']];
+['gemini-3.1-pro-preview','Coolkid 3.1 Pro'],['gemini-3-flash-preview','Coolkid 3 Flash'],['gemini-2.5-pro','Coolkid 2.5 Pro'],['gemini-2.5-flash','Coolkid 2.5 Flash'],['gemini-2.5-flash-lite','Coolkid 2.5 Flash-Lite'],
+['groq-oss120','Groq · GPT-OSS 120B','openai/gpt-oss-120b','','','groq'],['groq-oss20','Groq · GPT-OSS 20B (fastest)','openai/gpt-oss-20b','','fast','groq'],
+['groq-llama70','Groq · Llama 3.3 70B','llama-3.3-70b-versatile','','','groq'],['groq-llama8','Groq · Llama 3.1 8B (instant)','llama-3.1-8b-instant','','fast','groq']];
+const isG=k=>MD(k)[5]=='groq',isGq=m=>!/^gemini-/.test(m);
+const GFALL=['openai/gpt-oss-120b','llama-3.3-70b-versatile','llama-3.1-8b-instant'];
 const MD=k=>MODELS.find(x=>x[0]==k)||MODELS.find(x=>x[0]=='gemini-3-flash-preview');
 const API=k=>MD(k)[2]||MD(k)[0];
 const flav=()=>MD(D.model)[3]||'';
@@ -221,21 +226,40 @@ const ef=()=>(D.effs||{})[D.model]||(fast()?'low':D.eff);
 // Pro models (3.1 Pro behind Coolkid 3.6-3.8) have NO free tier, so free AI Studio keys get a 429 "limit: 0".
 // If the chosen model can't be used on a key, fall through to Flash models that free keys can use.
 const FALL=['gemini-3.8-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3-flash-preview','gemini-2.5-flash'];
-const MS=()=>[...new Set([API(D.model),...FALL])];
+const MS=()=>[...new Set([API(D.model),...(isG(D.model)?GFALL:FALL)])];
 const tc=m=>{const e=think?'high':call?'low':ef();
  return /gemini-[34]/.test(m)?{thinkingLevel:{low:'low',med:/pro/.test(m)?'high':'medium',high:'high'}[e]}:{thinkingBudget:{low:1024,med:8192,high:24576}[e]}};
 // model+key pairs that can never work (no free tier / no access / not found). Skipped so we don't waste a call on every
 // message. Lives in memory only: a reload or saving settings (e.g. adding a paid key) clears it.
 const dead=new Set();
 const permFail=(s,m)=>s==404||s==403||(s==429&&/limit:\s*0\b/.test(m));
+function toOAI(model,rb){
+ const m=[],sys=(rb.systemInstruction?.parts||[]).map(p=>p.text||'').join('');if(sys)m.push({role:'system',content:sys});
+ const cs=rb.contents||[];
+ cs.forEach((c,ci)=>{const txt=(c.parts||[]).map(p=>{
+   if(p.inlineData){if(ci==cs.length-1&&c.role!='model')throw Error('Groq models only read text. Pick a Gemini model for images, audio and PDFs, or attach a text file.');return '[attachment]'}
+   return p.text||''}).filter(Boolean).join('\n\n');
+  m.push({role:c.role=='model'?'assistant':'user',content:txt||' '})});
+ const req={model,messages:m};
+ if(/gpt-oss/.test(model))req.reasoning_effort={low:'low',med:'medium',high:'high'}[think?'high':call?'low':ef()];
+ return req}
 async function gem(ms,body){
- const ks=D.keys.filter(Boolean);
- if(!ks.length){openSet();throw Error('Add at least one Coolkid API key in settings ⚙')}
+ const gk=[...new Set([D.gk,...D.keys.filter(k=>/^gsk_/.test(k||''))].filter(Boolean))],gks=D.keys.filter(k=>k&&!/^gsk_/.test(k));
+ if(!gks.length&&!gk.length){openSet();throw Error('Add at least one API key in settings ⚙')}
  const{t,...rb}=body,list=[].concat(ms);let last='Request failed';
- if(!list.some(m=>ks.some(k=>!dead.has(m+'|'+k))))dead.clear();
- for(const model of list)for(let i=0;i<ks.length;i++){
+ if(!list.some(m=>[...gks,...gk].some(k=>!dead.has(m+'|'+k))))dead.clear();
+ for(const model of list){const G=isGq(model),ks=G?gk:gks;
+ if(!ks.length){last=G?'Add a Groq API key in settings ⚙ to use Groq models.':'Add a Gemini API key in settings ⚙ for this.';continue}
+ for(let i=0;i<ks.length;i++){
   const key=ks[(ki+i)%ks.length],id=model+'|'+key;if(dead.has(id))continue;
   try{
+   if(G){
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(toOAI(model,rb))});
+    const j=await r.json().catch(()=>({})),c=j.choices?.[0]?.message?.content;
+    if(r.ok&&c){ki=(ki+i+1)%ks.length;return{candidates:[{content:{parts:[{text:c}]}}]}}
+    last=r.ok?'The model sent an empty reply':'Groq: '+(j.error?.message||'HTTP '+r.status);
+    if(r.status==401||r.status==403||r.status==404)dead.add(id);
+    continue}
    let cfg=t?{...rb,generationConfig:{thinkingConfig:tc(model)}}:rb,r,j;
    for(let n=0;n<3;n++){
     r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(cfg)});
@@ -251,7 +275,7 @@ async function gem(ms,body){
     last=j.promptFeedback?.blockReason?'Blocked: '+j.promptFeedback.blockReason:'The model sent an empty reply'+(j.candidates?.[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'');continue}
    last=j.error?.message||'HTTP '+r.status;
    if(permFail(r.status,last))dead.add(id)}
-  catch(e){last=e.message}}
+  catch(e){last=e.message}}}
  throw Error(last)}
 
 /* ---------- UI helpers ---------- */
@@ -270,8 +294,8 @@ function dots(m,web){const d=add(m,'ai',''),pre=web?'Searching the web, thinking
  const rm=d.remove.bind(d);d.remove=()=>{clearInterval(d.tm);rm()};return d}
 const cp=b=>{navigator.clipboard.writeText(b.closest('.cb').querySelector('code').textContent);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
 const run=b=>{$('#pvf').srcdoc=b.closest('.cb').querySelector('code').textContent;$('#pv').classList.add('on')};
-function openSet(){[0,1,2].forEach(i=>$('#k'+i).value=D?.keys[i]||'');vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';$('#s-mem').value=(D.mem||[]).join('\n');schips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
-function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.mem=$('#s-mem').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(-60);D.keys=[0,1,2].map(i=>$('#k'+i).value.trim());dead.clear();save();$('#set').classList.remove('on')}
+function openSet(){[0,1].forEach(i=>$('#k'+i).value=D?.keys[i]||'');$('#k2').value=D?.gk||'';vchips();$('#sw').checked=D.sw!==false;$('#s-name').value=D.name||'';$('#s-about').value=D.about||'';$('#s-mem').value=(D.mem||[]).join('\n');schips();$('#acc').textContent='Logged in as '+user;$('#set').classList.add('on')}
+function saveSet(){D.sw=$('#sw').checked;D.name=$('#s-name').value.trim();D.about=$('#s-about').value.trim();D.mem=$('#s-mem').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(-60);D.keys[0]=$('#k0').value.trim();D.keys[1]=$('#k1').value.trim();D.gk=$('#k2').value.trim();if(D.gk&&!/^gsk_/.test(D.gk))alert('That does not look like a Groq key (they start with gsk_). Saved anyway.');dead.clear();save();$('#set').classList.remove('on')}
 
 /* ---------- voice + call ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -332,7 +356,7 @@ think:'<svg viewBox="0 0 24 24" style="stroke-width:2.3"><path d="M5.6 17.6A8 8 
 IC.x='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 IC.web='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>';
 function plus(b,m){
- pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['web','Search the web'+(webMode?' ✓':''),IC.web],['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
+ pop(b,[['cam','Camera',IC.cam],['photo','Photos',IC.photo],['file','Files',IC.file],...(m=='chat'?[['img','Create image'+(imgMode?' ✓':''),IC.img]]:[]),['web','Search the web'+(isG(D.model)?' (Gemini only)':'')+(webMode?' ✓':''),IC.web],['think','Think harder'+(think?' ✓':''),IC.think]],'',v=>{
   if(v=='img'){imgMode^=1;chips()}else if(v=='think'){think^=1;chips()}else if(v=='web'){webMode^=1;chips()}else $('#f-'+v).click()})}
 const pickM=v=>{D.model=v;save();lab()};
 function modelMenu(b){
@@ -363,7 +387,7 @@ const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|
 async function send(m){
  const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;
  const files=att;att=[];chips();inp.value='';busy=1;
- add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||needsWeb(t))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t),d=dots(m,web);if(call)st('Thinking…');
+ add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||needsWeb(t))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t)&&!isG(D.model),d=dots(m,web);if(call)st('Thinking…');
  let a;
  try{
   if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t))){

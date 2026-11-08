@@ -19,7 +19,8 @@ No backend, no build step, no dependencies. Just one `index.html`.
 - **Web search**: tap **+ → Search the web** (or ask about news, prices, weather, scores, and so on) and answers are grounded in Google Search, with source links under the reply.
 - **Thinking timer**: while waiting you see "Thinking for 12s", and each reply ends with "Thought for 12s".
 - **Fast mode**: Coolkid 3.5 Smart defaults to the **Fast** effort level (limited thinking). Pick Medium or High in the effort menu for deeper answers.
-- **Multi-key rotation**: add up to 3 API keys; requests rotate between them and skip keys that fail or hit limits.
+- **Groq models**: add a Groq key in Settings to use GPT-OSS 120B, GPT-OSS 20B, Llama 3.3 70B, and Llama 3.1 8B. They are in the model menu under **More models**. Groq models read text only, and web search and image generation still use Gemini.
+- **Multi-key rotation**: add up to 2 Gemini keys (requests rotate between them and skip any that fail) plus 1 Groq key.
 - **Local accounts**: multiple profiles stored on your device, with chat export to JSON.
 
 ## Quick start
@@ -27,7 +28,7 @@ No backend, no build step, no dependencies. Just one `index.html`.
 1. Download `index.html` (or clone this repo).
 2. Open it in a modern browser (Chrome, Edge, or Safari recommended).
 3. Create an account (this is local to your browser only).
-4. Open **Settings** and paste in at least one Gemini API key. Free keys are available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+4. Open **Settings** and paste in at least one Gemini API key. Free keys are available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). For Groq models, also paste a free Groq key from [console.groq.com/keys](https://console.groq.com/keys).
 5. Start chatting.
 
 ### Host it on GitHub Pages
