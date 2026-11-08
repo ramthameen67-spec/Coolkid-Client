@@ -200,7 +200,7 @@ const $=s=>document.querySelector(s),LS=localStorage;
 // Models: edit here if Google renames them
 const M={img:['gemini-3.1-flash-image-preview','gemini-2.5-flash-image','gemini-3-pro-image-preview']};
 const SYS={
-chat:'You are Coolkid Client, a very smart, witty and wildly creative AI with a neon-hacker vibe. Think carefully, be accurate, helpful and concise. You go by Coolkid; do not bring up which underlying model you run on. Be genuinely creative: fresh angles, vivid wording, surprising analogies and playful ideas, never generic boilerplate.',
+chat:'You are Coolkid Client, a brilliant, witty, wildly creative AI with a neon-hacker vibe. Be genuinely smart: answer the real question first, reason through anything tricky before you reply, get facts and numbers right, and say so when you are unsure. Be genuinely original: skip the first obvious idea, pick the surprising angle, use specific details, vivid wording and sharp analogies, and never write generic boilerplate. Keep it tight and never pad. You go by Coolkid; do not bring up which underlying model you run on. This app makes real pictures itself when the user asks to draw or make an image, so never write Python or other code to make a picture unless the user explicitly asks for code.',
 code:'You are Coolkid Client in Code mode: an elite senior engineer. Reason about edge cases, then give complete, correct, modern, runnable code in fenced blocks (label the language) plus a short explanation.',
 game:'You are an elite game developer. Output ONLY one complete self-contained HTML file (inline CSS and JS, no external resources, no markdown). Neon red on black style, keyboard AND touch controls, score, game over and restart. Make it fun and polished.'};
 let user,D,busy,imgMode,ki=0,voice=LS.ck_voice!='0';
@@ -255,7 +255,7 @@ function calc(s){
 
 /* ---------- Gemini (3 keys, rotating + failover) ---------- */
 const MODELS=[
-['ck-4','Coolkid 4 Argon','gemini-4-argon','Be fast, sharp and fresh. Lead with the answer in as few words as it needs, no preamble and no recap, and give it a creative twist (a vivid word, a surprising angle) instead of boilerplate. Go deeper only when asked.','fast'],
+['ck-4','Coolkid 4 Argon','gemini-4-argon','Be sharp, insightful and original. Answer the actual question directly, then add the one insight a smart friend would add. Be concrete (real examples, exact numbers, vivid analogies) and skip filler and recaps. Keep casual chat short, but reason properly through anything hard.','fast'],
 ['ck-3.8','Coolkid 3.8 Ultra','gemini-3.1-pro-preview','Think deeply and be exceptionally thorough, accurate and insightful.'],
 ['ck-3.7','Coolkid 3.7 Muse','gemini-3.1-pro-preview','Be wildly creative, original and imaginative.'],
 ['ck-3.6','Coolkid 3.6 Coder','gemini-3.1-pro-preview','Prioritize correct, clean, well-structured code and clear technical explanations.'],
@@ -274,7 +274,9 @@ const flav=()=>MD(D.model)[3]||'';
 const fast=()=>MD(D.model)[4]=='fast';
 let minOK=true,TEMP=1,askedFree=0;
 const EFF={low:'Low',med:'Medium',high:'High'};
-const ef=()=>(D.effs||{})[D.model]||(fast()?'low':D.eff);
+let HARD=0;
+const hardMsg=t=>t.length>140||/```/.test(t)||/\b(why|how (do|does|would|can|should)|explain|compare|plan|design|debug|fix|write|essay|story|analy[sz]e|strategy|prove|step by step|difference|best way|should i|pros and cons)\b/i.test(t);
+const ef=()=>(D.effs||{})[D.model]||(fast()?(HARD?'med':'low'):D.eff);
 // Pro models (3.1 Pro behind Coolkid 3.6-3.8) have NO free tier, so free AI Studio keys get a 429 "limit: 0".
 // If the chosen model can't be used on a key, fall through to Flash models that free keys can use.
 const FALL=['gemini-3.8-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3-flash-preview','gemini-2.5-flash'];
@@ -388,7 +390,7 @@ async function gem(ms,body){
  if(!jobs.length){dead.clear();Object.keys(slow).forEach(k=>delete slow[k]);jobs=mk()}
  if(!jobs.length)throw Error(last);
  // Fast models (Argon, Smart, Bolt fast): if no first word after 6s, race the next model and take whoever speaks first.
- const hedge=!!onText&&fast()&&jobs.length>1;if(hedge)jobs.sort((a,b)=>a.r-b.r);
+ const hedge=!!onText&&fast()&&!HARD&&jobs.length>1;if(hedge)jobs.sort((a,b)=>a.r-b.r);
  const to2=to||(onText?15000:60000);
  try{
   const j=await stagger(jobs.map(J=>(ac,claim)=>(J.G?runQ(J,rb,ac):runG(J,rb,t,to2,onText,ac,claim)).catch(e=>{
@@ -535,6 +537,9 @@ function chips(){
  $('#'+m).innerHTML=`<div class="log" id="l-${m}"></div><div class="bar"><div class="at"></div><textarea id="i-${m}" placeholder="${m=='chat'?'Ask anything, or say "draw a ..." to make an image':'Describe the code you need'}"></textarea><div class="cr"><button class="rc pb" onclick="plus(this,'${m}')" title="Add" aria-label="Add" style="font-size:28px;font-weight:700">+</button><button class="rb pb mdl" onclick="modelMenu(this)" title="Coolkid version"></button><button class="rb pb eff" onclick="effMenu(this)" title="Effort"></button><span class="sp"></span><button class="rc" onclick="startCall()" title="Call" aria-label="Call"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 10v4M10 5v14M14 8v8M18 10.5v3"/></svg></button><button class="rc" onclick="send('${m}')" title="Send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div>`;
  $('#i-'+m).oninput=function(){this.style.height='46px';this.style.height=Math.min(this.scrollHeight,140)+'px'};$('#i-'+m).onkeydown=e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();send(m)}}});
 
+const IMK='🖼 Image made: ';
+const lastImgP=m=>{const x=D[m].at(-1);return x&&x.r=='model'&&x.t.startsWith(IMK)?x.t.slice(IMK.length):null};
+function imgLog(m,t,pr){D[m].push({r:'user',t},{r:'model',t:IMK+pr});const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}save()}
 async function freePng(pr){
  const r=await fetch('https://image.pollinations.ai/prompt/'+encodeURIComponent(pr.slice(0,800))+'?width=1024&height=1024&model=flux&nologo=true&seed='+Math.floor(Math.random()*1e9)+'&referrer=coolkid');
  if(!r.ok)throw Error(r.status==429?'it is busy, wait 15 seconds and ask again':'it said '+r.status);
@@ -543,14 +548,17 @@ async function freePng(pr){
  return c.toDataURL('image/png')}
 const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|sketch|illustrate)\b|(?:generate|create|make|design|render|imagine|show)\b.{0,40}?\b(?:image|picture|pic|photo|art|artwork|drawing|illustration|logo|wallpaper|poster|avatar|pfp|portrait|banner|sticker|thumbnail)s?\b)/i.test(t);
 async function send(m){
- const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;TEMP=m=='code'?0.7:1.3;
- const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;
+ const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;TEMP=m=='code'?0.4:1;
+ const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;HARD=hardMsg(t)||files.length>0;
+ const lp=m=='chat'&&!files.length?lastImgP(m):null,
+  rt=lp&&/^\W*(?:(?:please|pls|yo|ok|okay|no|nah|bro|gng|bruh|again)\W+)*(?:try again|again|retry|redo|do it again|another(?: one)?|one more|new one|different one|regenerate|remake)\W*$/i.test(t),
+  mf=lp&&!rt&&t.length<140&&/^\W*(?:make it|but |more |less |add |remove |without |with |now |change |instead|too |it'?s (?:too|not)|that'?s (?:too|not)|not |bigger|smaller|darker|brighter|cooler|realistic|cartoon|zoom|closer|wider)/i.test(t);
  add(m,'user',(t+files.map(a=>'\n📎 '+a.name).join('')).trim());const web=(webMode||(needsWeb(t)&&!fast()))&&!imgMode&&!/^\/image /i.test(t)&&!isImg(t)&&!isG(D.model),d=dots(m,web);if(call)st('Thinking…');
  let a;
  try{
-  if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t))){
-   const pr=t.replace(/^\/image /i,'');let ep=pr;
-   try{ep=txt(await gem(MS(),{contents:[{parts:[{text:'Rewrite this as one vivid, highly creative image prompt (max 80 words). Output only the prompt: '+pr}]}]}))||pr}catch(e){}
+  if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t)||rt||mf)){
+   const pr=rt?lp:mf?lp+'. Change: '+t:t.replace(/^\/image /i,'');let ep=pr;
+   try{const w=txt(await gem(MS(),{t:1,generationConfig:{temperature:.8},contents:[{parts:[{text:'Turn this into ONE rich image prompt (max 90 words). The subject must stay EXACTLY what was asked: if it says black hole, the picture is a black hole, never a galaxy or anything similar. Add only style, lighting, camera angle, colors, mood and fine detail. Output only the prompt.\nRequest: '+pr}]}]}));if(w)ep=pr+'. '+w}catch(e){}
    const ph=files.filter(f=>f.data&&/^image\//.test(f.mime)).map(f=>({inlineData:{mimeType:f.mime,data:f.data}}));
    try{
     const j=await gem(M.img,{contents:[{parts:[...ph,{text:ph.length?pr:ep}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}});
@@ -566,6 +574,7 @@ async function send(m){
     const v=txt(await gem(MS(),{contents:[{parts:[{text:'Draw this as one richly detailed, colorful SVG illustration, viewBox="0 0 800 800", with gradients and glow. Output ONLY the raw <svg>...</svg> code, no markdown: '+ep}]}]})).match(/<svg[\s\S]*<\/svg>/i);
     if(!v)throw e;
     d.remove();add(m,'model',"The image model wasn't available on your keys, so I drew this one as SVG.",'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v[0].replace(/<svg\b(?![^>]*xmlns=)/i,'<svg xmlns="http://www.w3.org/2000/svg"')))}}
+   imgLog(m,t,pr);
   }else if(!files.length&&(a=calc(t))){
    D[m].push({r:'user',t},{r:'model',t:a});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}
@@ -574,7 +583,7 @@ async function send(m){
    D[m].push({r:'user',t:t||'Describe the attached file(s).',a:files});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=(t||files[0]?.name||'Attachment').slice(0,40)}
    const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)&&(!fast()||think)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
-   const j=await gem(MS(),{t:1,to:fast()?10000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
+   const j=await gem(MS(),{t:1,to:fast()&&!HARD?20000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
    a=txt(j)||'(empty reply)';
    const rm=[...a.matchAll(/\[\[\s*remember:\s*([^\]]+?)\s*\]\]/gi)].map(x=>x[1]);
    if(rm.length){a=a.replace(/\s*\[\[\s*remember:[^\]]*\]\]/gi,'').trim()||'Got it, I will remember that.';remember(rm)}
@@ -608,7 +617,7 @@ const RULES=' Accuracy rules: never guess at arithmetic. Work every calculation 
 const memTxt=()=>D.mem&&D.mem.length?' Long-term memory (facts you saved about the user from earlier chats; use them naturally, do not recite them): '+D.mem.join('; ')+'.':'';
 function remember(f){D.mem=D.mem||[];f.forEach(x=>{x=x.trim().slice(0,200);if(x&&!D.mem.some(y=>y.toLowerCase()==x.toLowerCase()))D.mem.push(x)});D.mem=D.mem.slice(-60)}
 const STY={chill:'Talk in a relaxed, friendly, casual tone.',hype:'Talk with high energy and hype, lots of enthusiasm.',serious:'Be professional, precise and formal.',short:'Keep every answer as brief as possible.'};
-const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+(fast()&&!think?RULES_FAST:RULES);
+const me=m=>(D.name?' The user is called '+D.name+'.':'')+(D.about?' What the user told you about themselves: '+D.about:'')+(m=='chat'&&D.style?' '+STY[D.style]:'')+(flav()?' '+flav():'')+memTxt()+(fast()&&!think&&!HARD?RULES_FAST:RULES);
 const THEMES=[['Red','#ff1a2e'],['Cyan','#00b8ff'],['Green','#1fd65f'],['Purple','#a64dff'],['Pink','#ff2bb0'],['Orange','#ff7a00']];
 const applyTheme=()=>document.documentElement.style.setProperty('--r',D.theme||'#ff1a2e');
 function tchips(){$('#th').innerHTML='';THEMES.forEach(([n,c])=>{const b=document.createElement('button');b.className='rb';b.textContent=n;b.style.background=c;b.style.outline=(D.theme||'#ff1a2e')==c?'2px solid #fff':'none';b.onclick=()=>{D.theme=c;save();applyTheme();tchips()};$('#th').append(b)})}
