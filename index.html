@@ -104,6 +104,8 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 .sug button:nth-child(2){animation-delay:.07s}.sug button:nth-child(3){animation-delay:.14s}.sug button:nth-child(4){animation-delay:.21s}
 .bar{background:linear-gradient(transparent,#0009);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .bar textarea{max-height:140px;transition:box-shadow .2s}
+.act .sv{width:44px;height:44px;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--r);border:0;box-shadow:var(--g)}
+.act .sv svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--r) 45%,transparent);border-radius:8px}
 @media(prefers-reduced-motion:reduce){body::before,.brand svg,.msg,.sug button{animation:none}}
 </style></head><body>
@@ -160,7 +162,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v1.4. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v1.6. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="pv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><button onclick="$('#pv').classList.remove('on')">Close</button><iframe id="pvf" sandbox="allow-scripts"></iframe></div></div>
@@ -309,14 +311,24 @@ function md(s){return esc(s).split('```').map((p,i)=>{
  return p.replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}).join('')}
 function add(m,r,t,img){
  const l=$('#l-'+m),d=document.createElement('div');d.className='msg '+(r=='user'?'user':'ai');
- d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image"><a class="dl" href="${img}" download="coolkid.${img.slice(11,14)=='svg'?'svg':'png'}">Download</a>`:'');
- if(r=='model'&&t){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button></div>')}
+ d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image"><div class="act" style="opacity:1"><button class="sv" onclick="shImg(this)" title="Save image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 12V3M8 7l4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg></button></div>`:'');
+ if(r=='model'&&t&&!img){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button></div>')}
  l.append(d);l.scrollTop=l.scrollHeight;return d}
 const fmtT=ms=>{const n=Math.max(1,Math.round(ms/1000));return n<60?n+'s':Math.floor(n/60)+' min '+(n%60)+'s'};
 function dots(m,web){const d=add(m,'ai',''),pre=web?'Searching the web, thinking for ':'Thinking for ';
  d.innerHTML='<span class="dots"><i></i><i></i><i></i></span> <span class="tk dl">'+pre+'1s</span>';d.t0=Date.now();
  d.tm=setInterval(()=>{const k=d.querySelector('.tk');if(k)k.textContent=pre+fmtT(Date.now()-d.t0)},500);
  const rm=d.remove.bind(d);d.remove=()=>{clearInterval(d.tm);rm()};return d}
+/* ---- image save: real file (blob), PNG for SVG art, native share sheet on phones ---- */
+const toPng=async bl=>{let x=await bl.text();x=x.replace(/<svg\b(?![^>]*\swidth=)/i,'<svg width="1600" height="1600"');
+ const u=URL.createObjectURL(new Blob([x],{type:'image/svg+xml'}));
+ return new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=c.height=1600;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,1600,1600);g.drawImage(i,0,0,1600,1600);c.toBlob(p=>{URL.revokeObjectURL(u);p?ok(p):no(Error('png'))},'image/png')};i.onerror=()=>no(Error('img'));i.src=u})};
+async function imgBlob(b){const bl=await(await fetch(b.closest('.msg').querySelector('img').src)).blob();return/svg/.test(bl.type)?toPng(bl):bl}
+const imgExt=bl=>/jpe?g/.test(bl.type)?'jpg':/webp/.test(bl.type)?'webp':'png';
+async function dlImg(b){try{const bl=await imgBlob(b),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='coolkid-'+Date.now()+'.'+imgExt(bl);document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
+ catch(e){alert('Could not download. Press and hold (or right-click) the image and choose Save image.')}}
+async function shImg(b){try{const bl=await imgBlob(b),f=new File([bl],'coolkid-'+Date.now()+'.'+imgExt(bl),{type:bl.type});
+ if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'Coolkid image'});else dlImg(b)}catch(e){if(e.name!='AbortError')dlImg(b)}}
 const cpm=b=>{navigator.clipboard.writeText(b.closest('.msg').dataset.raw);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
 const spm=b=>speak(b.closest('.msg').dataset.raw,0,1);
 const cp=b=>{navigator.clipboard.writeText(b.closest('.cb').querySelector('code').textContent);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};
@@ -443,7 +455,7 @@ async function send(m){
    }catch(e){
     const v=txt(await gem(MS(),{contents:[{parts:[{text:'Draw this as one richly detailed, colorful SVG illustration, viewBox="0 0 800 800", with gradients and glow. Output ONLY the raw <svg>...</svg> code, no markdown: '+ep}]}]})).match(/<svg[\s\S]*<\/svg>/i);
     if(!v)throw e;
-    d.remove();add(m,'model',"The image model wasn't available on your keys, so I drew this one as SVG.",'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v[0]))}
+    d.remove();add(m,'model',"The image model wasn't available on your keys, so I drew this one as SVG.",'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v[0].replace(/<svg\b(?![^>]*xmlns=)/i,'<svg xmlns="http://www.w3.org/2000/svg"')))}
   }else if(!files.length&&(a=calc(t))){
    D[m].push({r:'user',t},{r:'model',t:a});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}
