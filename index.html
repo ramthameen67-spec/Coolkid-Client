@@ -128,7 +128,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 
 <div id="upd" class="modal" onclick="if(event.target==this)closeUpd()"><div class="card" style="max-height:85vh;overflow:auto;text-align:left">
 <h3>🔔 Updates</h3>
-<h4>v2.0 <span class="utag">NEW</span></h4><ul><li><b>Argon fix.</b> Argon now uses the thinking levels it really supports and Coolkid finds its real model name on your key.</li><li>If Argon is silent for 6 seconds, a backup model races it and whichever speaks first wins.</li><li>Argon no longer auto-runs web search or code execution (use the + menu when you want them).</li></ul><h4>v1.9</h4><ul>
+<h4>v2.3 <span class="utag">NEW</span></h4><ul><li><b>Creative images:</b> an art director now plans every picture with a bold twist, camera, lighting and palette, and picks a different style each time (unless you name one).</li><li>The plan is shown under the picture, and Redo or "try again" gives a fresh take.</li></ul><h4>v2.2</h4><ul><li><b>Nicer answers:</b> real headings, bullet and numbered lists, tables, quotes, italics and links.</li><li><b>Self-repairing games:</b> if a game crashes, Coolkid reads the error and fixes it once by himself.</li><li>Your last 8 games are saved under the chips, plus a ⬇ Save button to download a game.</li><li>Redo button on pictures too.</li></ul><h4>v2.1</h4><ul><li><b>Stop button</b> (or Esc) while Coolkid is answering; what he already wrote is kept.</li><li><b>Redo</b> button on the latest reply.</li><li>Games are much better, and <b>Remix</b> changes the current game with your text.</li><li>Faster long chats, smarter Code mode, and one quick retry when Google is overloaded.</li></ul><h4>v2.0</h4><ul><li><b>Argon fix.</b> Argon now uses the thinking levels it really supports and Coolkid finds its real model name on your key.</li><li>If Argon is silent for 6 seconds, a backup model races it and whichever speaks first wins.</li><li>Argon no longer auto-runs web search or code execution (use the + menu when you want them).</li></ul><h4>v1.9</h4><ul>
 <li><b>Coolkid 4 Argon is way faster.</b> Replies now stream in word by word instead of showing up all at once, and Argon thinks at its lowest setting.</li>
 <li>If a model is stuck, Coolkid gives up after a few seconds and switches to a faster backup instead of making you wait minutes. A slow model is skipped for 5 minutes.</li>
 <li>New updates bell (this panel).</li></ul>
@@ -152,6 +152,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <section id="games" class="pane">
 <div class="gh"><input id="gp" placeholder="Describe a game, e.g. neon snake with power-ups"><button class="pri" onclick="mk()">Generate</button></div>
 <div class="chips" id="chips"></div>
+<div class="chips" id="mg"></div>
 <div class="gf"><iframe id="gf" sandbox="allow-scripts" srcdoc="<body style='background:#000;color:#ff1a2e;font:18px monospace;display:grid;place-items:center;height:100vh;margin:0'>Pick a game or describe your own"></iframe><div id="gd" hidden><span class="dots"><i></i><i></i><i></i></span></div></div>
 </section>
 </main>
@@ -183,7 +184,7 @@ nav button.on{background:var(--r);box-shadow:var(--g)}
 <div class="row"><button class="rb" onclick="exportChats()">Export chats</button><button class="rb" onclick="clearChats()">Clear all chats</button></div>
 <h3>Account</h3><small id="acc"></small>
 <div class="row"><button class="rb" onclick="out()">Log out</button><button class="rb" onclick="delAcc()">Delete account</button></div>
-<h3>About</h3><small>CoolKid Client v2.0. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
+<h3>About</h3><small>CoolKid Client v2.3. Chatbot, Code and Games, powered by Coolkid models. Accounts and chats are saved only in this browser.</small>
 <button class="pri" onclick="saveSet()">Save settings</button></div></div>
 
 <div id="iv" class="modal" onclick="if(event.target==this)this.classList.remove('on')"><div class="card" style="width:min(520px,100%);align-items:center">
@@ -201,8 +202,8 @@ const $=s=>document.querySelector(s),LS=localStorage;
 const M={img:['gemini-3.1-flash-image-preview','gemini-2.5-flash-image','gemini-3-pro-image-preview']};
 const SYS={
 chat:'You are Coolkid Client, a brilliant, witty, wildly creative AI with a neon-hacker vibe. Be genuinely smart: answer the real question first, reason through anything tricky before you reply, get facts and numbers right, and say so when you are unsure. Be genuinely original: skip the first obvious idea, pick the surprising angle, use specific details, vivid wording and sharp analogies, and never write generic boilerplate. Keep it tight and never pad. You go by Coolkid; do not bring up which underlying model you run on. This app makes real pictures itself when the user asks to draw or make an image, so never write Python or other code to make a picture unless the user explicitly asks for code.',
-code:'You are Coolkid Client in Code mode: an elite senior engineer. Reason about edge cases, then give complete, correct, modern, runnable code in fenced blocks (label the language) plus a short explanation.',
-game:'You are an elite game developer. Output ONLY one complete self-contained HTML file (inline CSS and JS, no external resources, no markdown). Neon red on black style, keyboard AND touch controls, score, game over and restart. Make it fun and polished.'};
+code:'You are Coolkid Client in Code mode: an elite senior engineer. Think through the requirements and edge cases first, make sensible assumptions instead of asking questions, then give complete, correct, modern, runnable code in fenced blocks (label the language, never use placeholders like "rest of code here"), followed by a short explanation and how to run it. Prefer simple readable solutions and point out any real trade-offs or bugs you notice.',
+game:'You are an elite game developer. Output ONLY one complete self-contained HTML file (inline CSS and JS, no external resources, no markdown, no explanations). The game runs in a sandboxed frame, so never use localStorage, sessionStorage, alert, prompt or confirm; keep high scores in a JS variable. Neon red on black style. Use a full-window canvas sized with devicePixelRatio and resize handling, requestAnimationFrame with delta-time, keyboard AND touch controls, a start screen, score, rising difficulty, game over with restart, and juicy feedback: particles, screen shake, glow and tiny WebAudio sound effects that start after the first tap. Write the code carefully so it runs first time with no errors, and make it genuinely fun and polished.'};
 let user,D,busy,imgMode,ki=0,voice=LS.ck_voice!='0';
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const txt=j=>{const ps=j.candidates?.[0]?.content?.parts||[],s=ps.map(p=>p.text||'').join('');return s||ps.map(p=>p.codeExecutionResult?.output||'').join('')};
@@ -299,6 +300,7 @@ function toOAI(model,rb){
  return req}
 // ===== v2.0 call layer =====
 // Argon only supports thinkingLevel low/medium/high (no "minimal", no thinkingBudget), so it gets its own ladder.
+let STOPF=0,KILL=null;
 const THK={},AV={},avT={};
 const RULES_FAST=' Memory: if the user shares a lasting personal fact or preference (name, job, goals, likes, projects, how they like answers) or asks you to remember something, end your reply with a tag like [[remember: short fact]], one tag per fact, and never mention or explain the tag. Do not tag trivial or temporary things.';
 function ladder(m){
@@ -326,9 +328,9 @@ function pick(model,key){
 // The first job to claim() (first word streamed, or finished) wins and the rest are aborted.
 function stagger(jobs,gap){
  return new Promise((ok,no)=>{
-  const acs=[],errs=[];let next=0,live=0,win=-1,tm;
+  const acs=[],errs=[];let next=0,live=0,win=-1,tm;KILL=()=>{STOPF=1;acs.forEach(a=>a.abort('stop'))};
   const launch=()=>{
-   clearTimeout(tm);if(win>=0)return;
+   clearTimeout(tm);if(win>=0)return;if(STOPF){no(errs);return}
    if(next>=jobs.length){if(!live)no(errs);return}
    const i=next++,ac=new AbortController();acs[i]=ac;live++;tm=setTimeout(launch,gap);
    const claim=()=>{if(win<0){win=i;clearTimeout(tm);acs.forEach((a,k)=>k!=i&&a.abort())}return win==i};
@@ -354,17 +356,18 @@ async function callG(model,key,cfg,onText,to,ac,claim){
     if(c?.groundingMetadata)gm=c.groundingMetadata;if(c?.finishReason)fin=c.finishReason}}}
   catch(e){if(!acc)throw e}  // stalled mid-answer: keep what already arrived
   return{r,j:{candidates:[{content:{parts:acc?[{text:acc}]:[]},groundingMetadata:gm,finishReason:fin}],promptFeedback:pf}}
- }catch(e){throw ac.signal.aborted&&ac.signal.reason=='timeout'?Error('timeout'):e}
+ }catch(e){throw ac.signal.aborted&&ac.signal.reason=='timeout'?Error('timeout'):ac.signal.reason=='stop'?Error('stopped'):e}
  finally{clearTimeout(tm)}}
 async function runG(J,rb,t,to,onText,ac,claim){
  const{model,key}=J,bs=rb.generationConfig?rb:{...rb,generationConfig:{temperature:TEMP,topP:0.97}},lad=t?ladder(model):{k:model,s:[null]};
- let li=Math.min(THK[lad.k]||0,lad.s.length-1),x={...bs},r,j;
+ let li=Math.min(THK[lad.k]||0,lad.s.length-1),x={...bs},r,j,rc=0;
  for(let n=0;n<5;n++){
   const gc={...x.generationConfig},th=lad.s[li];delete gc.thinkingConfig;if(th)gc.thinkingConfig=th;
   ({r,j}=await callG(model,key,{...x,generationConfig:gc},onText,to,ac,claim));
   if(!r.ok&&r.status==400){const e4=j.error?.message||'';
    if(t&&/think/i.test(e4)&&li<lad.s.length-1){THK[lad.k]=++li;continue}
    if(x.tools&&/tool|code|search|ground/i.test(e4)){const T=x.tools.filter(o=>o.google_search),{tools:_t,...y}=x;x=T.length&&T.length<_t.length?{...x,tools:T}:y;continue}}
+  if(!r.ok&&(r.status==503||r.status==500)&&rc++<1){await sleep(1500);continue}
   break}
  if(r.ok){
   if((j.candidates?.[0]?.content?.parts||[]).some(p=>p.text||p.inlineData||p.codeExecutionResult)){j.__m=J.want;return j}
@@ -376,6 +379,7 @@ async function runQ(J,rb,ac){
  if(r.ok&&c)return{candidates:[{content:{parts:[{text:c}]}}],__m:J.want};
  throw Object.assign(Error(r.ok?'The model sent an empty reply':'Bolt: '+(j.error?.message||'HTTP '+r.status)),{dead:[401,403,404].includes(r.status)})}
 async function gem(ms,body){
+ if(STOPF)throw Error('stopped');
  const gk=[...new Set([D.gk,...D.keys.filter(k=>/^gsk_/.test(k||''))].filter(Boolean))],gks=D.keys.filter(k=>k&&!/^gsk_/.test(k));
  if(!gks.length&&!gk.length){openSet();throw Error('Add at least one API key in settings ⚙')}
  const{t,to,onText,...rb}=body,list=[].concat(ms);let last='Request failed';
@@ -398,18 +402,30 @@ async function gem(ms,body){
    if(e.message=='timeout'){slow[J.id]=Date.now()+300000;e=Error('That model took too long to answer')}
    last=e.message;throw e})),hedge?6000:1e9);
   ki++;return j}
- catch(e){throw Error(last)}}
+ catch(e){throw Error(STOPF?'stopped':last)}}
 
 /* ---------- UI helpers ---------- */
+function mdi(t){return t.replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*(?=\S)([^*\n]*\S)\*(?!\*)/g,'$1<i>$2</i>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')}
+function mdb(p){const L=p.split('\n'),o=[],LI=/^\s*[-*•]\s+/,NI=/^\s*\d+[.)]\s+/,TR=/^\|.*\|\s*$/,Q=/^&gt;\s?/;let i=0,tl=0;
+ while(i<L.length){const l=L[i];let m;
+  if(m=l.match(/^(#{1,4})\s+(.*)/)){const n=m[1].length+1;o.push('<h'+n+'>'+mdi(m[2])+'</h'+n+'>');i++;tl=0}
+  else if(LI.test(l)||NI.test(l)){const ol=NI.test(l),re=ol?NI:LI,it=[];while(i<L.length&&re.test(L[i]))it.push('<li>'+mdi(L[i++].replace(re,''))+'</li>');o.push((ol?'<ol>':'<ul>')+it.join('')+(ol?'</ol>':'</ul>'));tl=0}
+  else if(TR.test(l)&&/^[\s|:-]*-[\s|:-]*$/.test(L[i+1]||'')&&(L[i+1]||'').includes('|')){const rw=[];while(i<L.length&&TR.test(L[i]))rw.push(L[i++]);const ce=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>mdi(c.trim()));o.push('<div class="tw"><table><tr>'+ce(rw[0]).map(c=>'<th>'+c+'</th>').join('')+'</tr>'+rw.slice(2).map(r=>'<tr>'+ce(r).map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table></div>');tl=0}
+  else if(Q.test(l)){const q=[];while(i<L.length&&Q.test(L[i]))q.push(mdi(L[i++].replace(Q,'')));o.push('<blockquote>'+q.join('<br>')+'</blockquote>');tl=0}
+  else if(/^\s*([-*_])\1{2,}\s*$/.test(l)){o.push('<hr>');i++;tl=0}
+  else if(l.trim()){o.push('<div>'+mdi(l)+'</div>');i++;tl=1}
+  else{if(tl){o.push('<div class="sp"></div>');tl=0}i++}}
+ return o.join('')}
+document.head.insertAdjacentHTML('beforeend','<style>.msg h2,.msg h3,.msg h4,.msg h5{margin:.7em 0 .3em;line-height:1.25}.msg h2{font-size:1.25em}.msg h3{font-size:1.12em}.msg h4,.msg h5{font-size:1em}.msg ul,.msg ol{margin:.3em 0 .3em 1.2em;padding:0}.msg li{margin:.15em 0}.msg blockquote{margin:.5em 0;padding:.2em .8em;border-left:3px solid var(--r)}.msg hr{border:0;border-top:1px solid var(--r);opacity:.4;margin:.8em 0}.msg .tw{overflow:auto;margin:.5em 0}.msg table{border-collapse:collapse;font-size:.92em}.msg th,.msg td{border:1px solid var(--r);padding:4px 9px;text-align:left}.msg th{background:#ff1a2e22}.msg .sp{height:.55em}.msg a{color:var(--r)}</style>');
 function md(s){return esc(s).split('```').map((p,i)=>{
  if(i%2){const m=p.match(/^(\w*)\n?([\s\S]*)$/),l=m[1];
   return `<div class="cb"><div class="ch"><span>${l||'code'}</span><span><button onclick="cp(this)">Copy</button>${/html/i.test(l)?'<button onclick="run(this)">Run ▶</button>':''}</span></div><pre><code>${m[2]}</code></pre></div>`}
- return p.replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}).join('')}
+ return mdb(p)}).join('')}
 function add(m,r,t,img){
  const l=$('#l-'+m),d=document.createElement('div');d.className='msg '+(r=='user'?'user':'ai');
- d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image" onclick="viewImg(this)" style="cursor:pointer"><div class="act" style="opacity:1"><button class="sv" onclick="viewImg(this)" title="Save image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 12V3M8 7l4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg></button></div>`:'');
- if(r=='model'&&t&&!img){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button></div>')}
- l.append(d);l.scrollTop=l.scrollHeight;return d}
+ d.innerHTML=md(t||'')+(img?`<img src="${img}" alt="Generated image" onclick="viewImg(this)" style="cursor:pointer"><div class="act" style="opacity:1"><button class="sv" onclick="viewImg(this)" title="Save image" aria-label="Save image"><svg viewBox="0 0 24 24"><path d="M12 12V3M8 7l4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg></button><button class="rg" onclick="rgm(this)">↻ Redo</button></div>`:'');
+ if(r=='model'&&t&&!img){d.dataset.raw=t;d.insertAdjacentHTML('beforeend','<div class="act"><button onclick="cpm(this)">Copy</button><button onclick="spm(this)">🔊 Play</button>'+(/^[⚠⏹]/.test(t)?'':'<button class="rg" onclick="rgm(this)">↻ Redo</button>')+'</div>')}
+ l.querySelectorAll('.rg').forEach(x=>x.remove());l.append(d);l.scrollTop=l.scrollHeight;return d}
 const fmtT=ms=>{const n=Math.max(1,Math.round(ms/1000));return n<60?n+'s':Math.floor(n/60)+' min '+(n%60)+'s'};
 function dots(m,web){const d=add(m,'ai',''),pre=web?'Searching the web, thinking for ':'Thinking for ';
  d.innerHTML='<span class="dots"><i></i><i></i><i></i></span> <span class="tk dl">'+pre+'1s</span>';d.t0=Date.now();
@@ -539,7 +555,7 @@ function chips(){
 
 const IMK='🖼 Image made: ';
 const lastImgP=m=>{const x=D[m].at(-1);return x&&x.r=='model'&&x.t.startsWith(IMK)?x.t.slice(IMK.length):null};
-function imgLog(m,t,pr){D[m].push({r:'user',t},{r:'model',t:IMK+pr});const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}save()}
+function imgLog(m,t,pr,w,st){D[m].push({r:'user',t},{r:'model',t:IMK+pr});const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}save();try{const e=$('#l-'+m).lastElementChild;if(e&&e.classList.contains('msg'))e.insertAdjacentHTML('beforeend','<div class="dl">🎨 '+esc((st?st.split(',')[0]+' · ':'')+(w||pr).slice(0,260))+'</div>')}catch(x){}}
 async function freePng(pr){
  const r=await fetch('https://image.pollinations.ai/prompt/'+encodeURIComponent(pr.slice(0,800))+'?width=1024&height=1024&model=flux&nologo=true&seed='+Math.floor(Math.random()*1e9)+'&referrer=coolkid');
  if(!r.ok)throw Error(r.status==429?'it is busy, wait 15 seconds and ask again':'it said '+r.status);
@@ -547,9 +563,16 @@ async function freePng(pr){
  const bm=await createImageBitmap(bl),c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);
  return c.toDataURL('image/png')}
 const isImg=t=>/^\W*(?:(?:please|pls|can you|could you|yo)\s+)*(?:(?:draw|paint|sketch|illustrate)\b|(?:generate|create|make|design|render|imagine|show)\b.{0,40}?\b(?:image|picture|pic|photo|art|artwork|drawing|illustration|logo|wallpaper|poster|avatar|pfp|portrait|banner|sticker|thumbnail)s?\b)/i.test(t);
+function rgm(b){const el=b.closest('.msg'),m=el.closest('section').id;if(busy||!['chat','code'].includes(m))return;const h=D[m],u=h.at(-2);if(h.at(-1)?.r!='model'||u?.r!='user')return;h.length-=2;save();const pv=el.previousElementSibling;el.remove();if(pv&&pv.classList.contains('user'))pv.remove();$('#i-'+m).value=u.t;att=u.a||[];chips();send(m)}
+function stopUI(on){STOPF=0;let b=$('#stp');if(!b){b=document.createElement('button');b.id='stp';b.textContent='■ Stop';b.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:30;padding:8px 18px;border-radius:99px;border:1px solid #ff1a2e;background:#000;color:#ff1a2e;font:600 13px system-ui;box-shadow:0 0 14px #ff1a2e66;display:none';b.onclick=()=>{if(KILL)KILL()};document.body.append(b)}b.style.display=on?'block':'none'}
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&busy&&KILL)KILL()});
+const ctxOf=m=>{const h=D[m].slice(-30);while(h.length&&h[0].r!='user')h.shift();return h};
+const IMS=['cinematic photograph, anamorphic lens, volumetric light','moody oil painting with visible brush strokes','neon cyberpunk, rain-slick reflections, glowing signs','intricate paper-cut diorama with layered depth','dreamlike surrealism, impossible scale, soft glow','ultra-detailed 3D render, subsurface glow, studio lighting','vintage sci-fi book cover, airbrushed, bold shapes','ink and watercolor illustration, delicate linework','stained glass and gold leaf, ornate symmetry','low-poly isometric miniature world, tilt-shift','dark fantasy concept art, epic scale, dramatic rim light','retro synthwave poster, chrome and gradients'];
+let LASTST='';
+const pickSt=av=>{let a;do{a=IMS[Math.random()*IMS.length|0]}while(a==av);return a};
 async function send(m){
  const inp=$('#i-'+m),t=inp.value.trim();if((!t&&!att.length)||busy)return;TEMP=m=='code'?0.4:1;
- const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;HARD=hardMsg(t)||files.length>0;
+ const files=att;att=[];chips();inp.value='';inp.style.height='';busy=1;stopUI(1);HARD=hardMsg(t)||files.length>0;
  const lp=m=='chat'&&!files.length?lastImgP(m):null,
   rt=lp&&/^\W*(?:(?:please|pls|yo|ok|okay|no|nah|bro|gng|bruh|again)\W+)*(?:try again|again|retry|redo|do it again|another(?: one)?|one more|new one|different one|regenerate|remake)\W*$/i.test(t),
   mf=lp&&!rt&&t.length<140&&/^\W*(?:make it|but |more |less |add |remove |without |with |now |change |instead|too |it'?s (?:too|not)|that'?s (?:too|not)|not |bigger|smaller|darker|brighter|cooler|realistic|cartoon|zoom|closer|wider)/i.test(t);
@@ -558,7 +581,10 @@ async function send(m){
  try{
   if(m=='chat'&&!call&&(imgMode||/^\/image /i.test(t)||isImg(t)||rt||mf)){
    const pr=rt?lp:mf?lp+'. Change: '+t:t.replace(/^\/image /i,'');let ep=pr;
-   try{const w=txt(await gem(MS(),{t:1,generationConfig:{temperature:.8},contents:[{parts:[{text:'Turn this into ONE rich image prompt (max 90 words). The subject must stay EXACTLY what was asked: if it says black hole, the picture is a black hole, never a galaxy or anything similar. Add only style, lighting, camera angle, colors, mood and fine detail. Output only the prompt.\nRequest: '+pr}]}]}));if(w)ep=pr+'. '+w}catch(e){}
+   let w2='',st='';
+   const named=/\b(anime|manga|realistic|photo\w*|pixel|cartoon|3d|oil|watercolou?r|sketch|painting|pencil|comic|lego|logo|minimal\w*|flat|vector|neon|cyberpunk|steampunk|vaporwave|surreal\w*|low.?poly|isometric|render|digital art|style|pixar|ghibli)\b/i.test(pr);
+   if(!named){st=pickSt(LASTST);LASTST=st}
+   try{const w=txt(await gem(MS(),{t:1,generationConfig:{temperature:1.1},contents:[{parts:[{text:'You are a world-class art director. Turn the request into ONE image prompt (max 110 words). Rules: (1) The subject must stay EXACTLY what was asked: a black hole stays a black hole, never a galaxy or anything else. (2) Add one bold, unexpected creative idea that makes the picture unforgettable, such as a striking scale contrast, an unusual viewpoint or a small story hidden in the scene. (3) Give concrete composition, camera angle, lighting, color palette and mood. (4) '+(named?'Keep the art style the user named.':'Art direction to use: '+st+'.')+' Output only the prompt.\nRequest: '+pr}]}]}));if(w){w2=w;ep=pr+'. '+w}}catch(e){}
    const ph=files.filter(f=>f.data&&/^image\//.test(f.mime)).map(f=>({inlineData:{mimeType:f.mime,data:f.data}}));
    try{
     const j=await gem(M.img,{contents:[{parts:[...ph,{text:ph.length?pr:ep}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}});
@@ -571,10 +597,10 @@ async function send(m){
      if(!ph.length&&D.freeImg===undefined&&!askedFree){askedFree=1;ok=confirm('Your Gemini keys cannot make images right now.\n\nUse the free backup image maker instead (Pollinations)? Your picture description is sent to pollinations.ai, not Google. You can switch this off in Settings.');if(ok){D.freeImg=true;save()}}
      if(ok&&!ph.length){try{u=await freePng(ep)}catch(e2){}}}
     if(u){d.remove();add(m,'model',"Your Gemini keys can't make images right now, so I used the free backup image maker.",u)}else{
-    const v=txt(await gem(MS(),{contents:[{parts:[{text:'Draw this as one richly detailed, colorful SVG illustration, viewBox="0 0 800 800", with gradients and glow. Output ONLY the raw <svg>...</svg> code, no markdown: '+ep}]}]})).match(/<svg[\s\S]*<\/svg>/i);
+    const v=txt(await gem(MS(),{contents:[{parts:[{text:'Draw this as one richly detailed, colorful SVG illustration, viewBox="0 0 800 800", with gradients, glow, layered depth, a dramatic focal point and one surprising detail. Output ONLY the raw <svg>...</svg> code, no markdown: '+ep}]}]})).match(/<svg[\s\S]*<\/svg>/i);
     if(!v)throw e;
     d.remove();add(m,'model',"The image model wasn't available on your keys, so I drew this one as SVG.",'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(v[0].replace(/<svg\b(?![^>]*xmlns=)/i,'<svg xmlns="http://www.w3.org/2000/svg"')))}}
-   imgLog(m,t,pr);
+   imgLog(m,t,pr,w2,st);
   }else if(!files.length&&(a=calc(t))){
    D[m].push({r:'user',t},{r:'model',t:a});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=t.slice(0,40)}
@@ -583,7 +609,7 @@ async function send(m){
    D[m].push({r:'user',t:t||'Describe the attached file(s).',a:files});
    const c=D.chats.find(x=>x.id==D.cur[m]);if(c){c.ts=Date.now();if(c.title=='New chat')c.title=(t||files[0]?.name||'Attachment').slice(0,40)}
    const tl=[...(web?[{google_search:{}}]:[]),...(!call&&mathy(t)&&(!fast()||think)?[{codeExecution:{}}]:[])],sys=SYS[m]+me(m)+(web?' Google Search is on for this reply: use it for anything recent or that may have changed, and answer from what you find.':'')+(think?' Think very carefully, verify your reasoning step by step and double-check before answering.':'')+(call?' You are on a live voice call: answer in 1-3 short spoken sentences, no markdown.':'')+(m=='chat'?(D.sw!==false&&Math.random()<.25?' For this reply only, you may drop one or two casual swear words (like damn, hell, shit) for flavor, naturally and never aimed at the user.':' Do not swear in this reply.'):'');
-   const j=await gem(MS(),{t:1,to:fast()&&!HARD?20000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:D[m].map(x=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
+   const j=await gem(MS(),{t:1,to:fast()&&!HARD?20000:40000,...(tl.some(x=>x.codeExecution)?{}:{onText:s=>{if(!d.sh){d.sh=1;clearInterval(d.tm)}d.innerHTML=md(s.replace(/\s*\[\[\s*remember:[\s\S]*$/i,''));const L=$('#l-'+m);L.scrollTop=L.scrollHeight}}),...(tl.length?{tools:tl}:{}),systemInstruction:{parts:[{text:sys}]},contents:ctxOf(m).map((x,i,A)=>({role:x.r,parts:[...(x.a||[]).map(f=>f.data&&i<A.length-4?{text:'(earlier attachment '+f.name+' not resent)'}:f.data?{inlineData:{mimeType:f.mime,data:f.data}}:{text:'File '+f.name+':\n'+f.txt}),{text:x.t}]}))});
    a=txt(j)||'(empty reply)';
    const rm=[...a.matchAll(/\[\[\s*remember:\s*([^\]]+?)\s*\]\]/gi)].map(x=>x[1]);
    if(rm.length){a=a.replace(/\s*\[\[\s*remember:[^\]]*\]\]/gi,'').trim()||'Got it, I will remember that.';remember(rm)}
@@ -593,20 +619,32 @@ async function send(m){
    if(src.length)ft+=' · 🌐 '+src.map(w=>'<a href="'+w.uri.replace(/"/g,'%22')+'" target="_blank" rel="noopener">'+esc(w.title||'source')+'</a>').join(' · ');
    if(rm.length)ft+='<br>🧠 Saved to memory: '+esc(rm.join('; '));
    const af=el.querySelector('.act');(af||el).insertAdjacentHTML(af?'beforebegin':'beforeend','<div class="dl">'+ft+'</div>')}
- }catch(e){d.remove();if(D[m].at(-1)?.r=='user')D[m].pop();add(m,'model','⚠ '+e.message)}
- busy=0;
+ }catch(e){d.remove();if(D[m].at(-1)?.r=='user')D[m].pop();add(m,'model',e.message=='stopped'?'⏹ Stopped.':'⚠ '+e.message)}
+ busy=0;stopUI(0);
  if(call){a?speak(a,listen):setTimeout(listen,1500)}else if(a&&m=='chat')speak(a)}
 
 /* ---------- games ---------- */
 ['Neon Snake','Pong vs AI','Flappy Ghost','Space Shooter','Tic-Tac-Toe vs AI','Memory Match'].forEach(g=>{
  const b=document.createElement('button');b.textContent=g;b.onclick=()=>{$('#gp').value=g;mk()};$('#chips').append(b)});
+{const rb=document.createElement('button');rb.textContent='Remix';rb.title='Change the current game using the text above';rb.onclick=()=>mk(1);document.querySelector('.gh').append(rb);const sb=document.createElement('button');sb.textContent='⬇ Save';sb.title='Download this game as an .html file';sb.onclick=()=>{if(!LG)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([LG],{type:'text/html'}));a.download='coolkid-game.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};document.querySelector('.gh').append(sb)}
 $('#gp').onkeydown=e=>{if(e.key=='Enter')mk()};
-async function mk(){
- const p=$('#gp').value.trim();if(!p||busy)return;busy=1;$('#gd').hidden=0;
- try{const t=txt(await gem(MS(),{t:1,systemInstruction:{parts:[{text:SYS.game}]},contents:[{parts:[{text:'Make this game: '+p}]}]}));
-  const m=t.match(/```(?:html)?\n([\s\S]*?)```/);$('#gf').srcdoc=m?m[1]:t}
+let LG='',FIXN=0;
+const SNIP='<script>onerror=function(m,s,l){parent.postMessage({ckErr:m+" (line "+l+")"},"*")};addEventListener("unhandledrejection",function(e){parent.postMessage({ckErr:String(e.reason)},"*")})<\/script>';
+const inj=h=>/<head[^>]*>/i.test(h)?h.replace(/<head[^>]*>/i,x=>x+SNIP):/<html[^>]*>/i.test(h)?h.replace(/<html[^>]*>/i,x=>x+SNIP):SNIP+h;
+const gx=t=>{let m=t.match(/```(?:html)?[ \t]*\n([\s\S]*?)```/);if(m)return m[1];m=t.match(/<!doctype[\s\S]*<\/html>|<html[\s\S]*<\/html>/i);return m?m[0]:t.replace(/^\s*```(?:html)?\s*/i,'').replace(/```\s*$/,'')};
+const gkey=()=>'ck_g_'+user;
+function gren(){const b=$('#mg');b.innerHTML='';let a=[];try{a=JSON.parse(LS[gkey()]||'[]')}catch(e){}a.forEach(x=>{const c=document.createElement('button');c.textContent='🎮 '+x.n;c.title='Open this saved game';c.onclick=()=>{LG=x.h;FIXN=0;$('#gf').srcdoc=inj(x.h)};b.append(c)})}
+function gsave(n){try{const a=JSON.parse(LS[gkey()]||'[]').filter(x=>x.n!=n.slice(0,28));a.unshift({n:n.slice(0,28),h:LG});LS[gkey()]=JSON.stringify(a.slice(0,8));gren()}catch(e){}}
+addEventListener('message',e=>{const f=$('#gf');if(e.source===f.contentWindow&&e.data&&e.data.ckErr&&!busy&&FIXN<1&&LG){FIXN++;mk(2,String(e.data.ckErr).slice(0,300))}});
+$('#gd').insertAdjacentHTML('beforeend','<span id="gt" style="margin-left:10px;color:var(--r);font:13px monospace"></span>');
+document.querySelector('nav button[data-t=games]').addEventListener('click',()=>{if(user)gren()});
+async function mk(rx,er){
+ const p=$('#gp').value.trim();if((!p&&rx!=2)||busy)return;busy=1;HARD=1;STOPF=0;$('#gd').hidden=0;if(rx!=2)FIXN=0;
+ const t0=Date.now(),tk=setInterval(()=>{$('#gt').textContent=(rx==2?'Fixing a bug… ':rx?'Remixing… ':'Building… ')+Math.round((Date.now()-t0)/1000)+'s'},500);
+ try{const t=txt(await gem(MS(),{t:1,to:180000,systemInstruction:{parts:[{text:SYS.game}]},contents:[{parts:[{text:rx==2&&LG?'Here is a game that crashes:\n```html\n'+LG+'\n```\nRuntime error: '+er+'\nFix this bug and any others you can find. Output the FULL corrected game as one self-contained HTML file.':rx&&LG?'Here is the current game:\n```html\n'+LG+'\n```\nApply this change and output the FULL updated game as one self-contained HTML file: '+p:'Make this game: '+p}]}]}));
+  const m=t.match(/```(?:html)?\n([\s\S]*?)```/);LG=gx(t);$('#gf').srcdoc=inj(LG);gsave(rx==2?($('#gp').value.trim()||'Game'):p)}
  catch(e){$('#gf').srcdoc='<body style="background:#000;color:#ff1a2e;font:16px monospace;padding:20px">⚠ '+esc(e.message)}
- $('#gd').hidden=1;busy=0}
+ clearInterval(tk);$('#gt').textContent='';$('#gd').hidden=1;busy=0}
 
 /* ---------- saved chats, drawer, about you ---------- */
 let tab='chat';
@@ -663,7 +701,7 @@ function delAcc(){
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button,.pane').forEach(x=>x.classList.remove('on'));
  b.classList.add('on');tab=b.dataset.t;$('#'+b.dataset.t).classList.add('on')});
-const UPV='2.0';
+const UPV='2.3';
 function openUpd(){$('#upd').classList.add('on');LS.ck_seen=UPV;$('#bell').classList.remove('new')}
 function closeUpd(){$('#upd').classList.remove('on')}
 if(LS.ck_seen!=UPV)$('#bell').classList.add('new');
